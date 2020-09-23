@@ -19,7 +19,10 @@ export default class QueryBuilder<M extends Model<P>, P> {
         limit = limit || this._limit;
         skip = skip || this._skip;
         console.log(this.Model.collection);
-        const querybuilder = this.Model.getCollection().find(this._query as any, this._selector);
+        const querybuilder = this.Model.getCollection().find(this._query, {
+            projection: this._selector,
+            limit: this._limit
+        });
         if (limit) {
             querybuilder.limit(limit);
         }
@@ -93,7 +96,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     }
   
     async paginate(page: number, limit: number = QueryBuilder.paginateSize) {
-        const total = await (this.Model as any).model.countDocuments(this._query);
+        const total = await this.Model.getCollection().countDocuments(this._query);
         const docs = await this.find(limit, (page - 1) * limit);
         const pages = Math.ceil(total / limit);
         return {

@@ -28,6 +28,11 @@ export default abstract class Model<P = Record<string, any>> {
         console.log("collection name", this.collection);
         return this.driver.collection(this.collection);
     }
+
+    static aggregate() {
+        return this.getCollection().aggregate();
+    }
+    
     constructor(public readonly attributes: P & IDefaultProps) {}
 
     toJSON() {
