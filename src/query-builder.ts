@@ -1,10 +1,7 @@
-import { Cursor, FindOneOptions } from "mongodb";
+import { Cursor, FilterQuery, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 import Pagination from "./pagination";
 
-interface IQueryOption {
-  limit?: number;
-}
 export default class QueryBuilder<M extends Model<P>, P> {
   protected _query: Record<string, string | number> = {};
   protected _options: FindOneOptions<P> = {};
@@ -15,7 +12,6 @@ export default class QueryBuilder<M extends Model<P>, P> {
   constructor(public Model: ModelConstructor<P, M>) {}
 
   async find() {
-    console.log("options", this._options);
     const querybuilder = this.Model.collection.find<P>(this._query, this._options as any);
     const rows: M[] = [];
     for await (const row of querybuilder) {
@@ -47,8 +43,12 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return this;
   }
 
-  where(name: string, value: any) {
-    this._query[name] = value;
+  where(name: keyof P | FilterQuery<P>, value: any) {
+      if (typeof name === "string") {
+          this._query[name] = value;
+      } else {
+          Object.assign(this._query, name);
+      }
     return this;
   }
 
@@ -63,25 +63,23 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return cloned;
   }
 
-  async create(props: Omit<P, "_id">) {
-    const observer = this.Model.observer;
-    const record = new this.Model(props as any);
-    if (observer && observer.creating) {
-      await observer.creating(record);
+    create(props: Omit<P, "_id">) {
+        const record = new this.Model(props as any);
+        return record.save();
     }
-    await record.save();
-    if (observer && observer.created) {
-      observer.created(record);
-    }
-    return record;
-  }
 
-  delete() {}
+    update(items: Partial<P>) {
+        return this.Model.collection.updateMany(this._query, items);
+    }
+
+    delete() {
+        return this.Model.collection.deleteMany(this._query);
+    }
 
   async modelify(data: AsyncGenerator<P> | Cursor<P>) {
     const rows: M[] = [];
     for await (const row of data) {
-      rows.push(new this.Model(row));
+      rows.push(new this.Model(row, false));
     }
     return rows;
   }
@@ -110,8 +108,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
 
   async *[Symbol.asyncIterator]() {
     for await (const row of this.Model.collection.find<P>(this._query, this._options as any)) {
-        yield new this.Model(row);
+        yield new this.Model(row, false);
     }
   }
 }
-
