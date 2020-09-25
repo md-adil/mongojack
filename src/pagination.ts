@@ -2,7 +2,7 @@ import QueryBuilder from "./query-builder";
 import Model from "./model";
 import { Error } from "./error";
 
-interface IResult<M> {
+export interface IResult<M> {
     total: number;
     limit: number;
     page: number;
@@ -15,7 +15,11 @@ class Pagination<M extends Model<P>, P> {
     _total?: number;
     _rows?: M[];
 
-    constructor(public readonly queryBuilder: QueryBuilder<M, P>, public readonly page: number, public readonly limit = Pagination.pageSize) {
+    constructor(
+        public readonly queryBuilder: QueryBuilder<M, P>,
+        public readonly page: number,
+        public readonly limit = Pagination.pageSize
+    ) {
     }
   
 
