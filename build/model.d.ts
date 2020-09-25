@@ -1,16 +1,17 @@
-import { Collection, MongoClientOptions } from "mongodb";
+import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
 export interface ModelConstructor<X, Y extends Model<X>> {
     new (attributes: X): Y;
     collection: Collection;
-    observer: Observer<Y>;
+    observer?: Observer<Y>;
 }
 interface IDefaultProps {
-    _id: string;
+    _id: ObjectID;
 }
 export default abstract class Model<P = Record<string, any>> {
     readonly attributes: P & IDefaultProps;
+    static collectionName: string;
     static driver: Driver;
     ["constructor"]: typeof Model;
     static connect(url: string, database?: string, options?: MongoClientOptions): Promise<Driver>;

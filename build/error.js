@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class Error extends global.Error {
+const mongodb_1 = require("mongodb");
+class Error extends mongodb_1.MongoError {
     constructor() {
         super(...arguments);
-        this.code = "MongoModelError";
+        this.type = "MongoModelError";
     }
 }
 exports.Error = Error;

@@ -1,20 +1,22 @@
+import { Cursor, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 export default class QueryBuilder<M extends Model<P>, P> {
     Model: ModelConstructor<P, M>;
-    private _query;
-    private _limit?;
-    private _skip?;
-    private _selector?;
-    static paginateSize: number;
+    protected _query: Record<string, string | number>;
+    protected _options: FindOneOptions<P>;
+    static pageSize: number;
     constructor(Model: ModelConstructor<P, M>);
-    find(limit?: number, skip?: number): Promise<M[]>;
-    take(n: number): this;
-    skip(n: number): void;
+    find(): Promise<M[]>;
+    first(): Promise<M | null>;
+    take(n: FindOneOptions<P>["limit"]): this;
+    skip(n: FindOneOptions<P>["skip"]): this;
+    sort(n: FindOneOptions<P>["sort"]): this;
     where(name: string, value: any): this;
-    select(...fields: (string | Record<string, number>)[]): this;
+    project(p: FindOneOptions<P>["projection"]): void;
     clone(): QueryBuilder<M, P>;
-    create(props: P): Promise<void>;
+    create(props: Omit<P, "_id">): Promise<M>;
     delete(): void;
+    modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;
     paginate(page: number, limit?: number): Promise<{
         limit: number;
         page: number;
@@ -22,5 +24,14 @@ export default class QueryBuilder<M extends Model<P>, P> {
         total: number;
         docs: M[];
     }>;
+    [Symbol.asyncIterator](): {
+        next(): Promise<{
+            done: boolean;
+            value?: undefined;
+        } | {
+            done: boolean;
+            value: M;
+        }>;
+    };
 }
 //# sourceMappingURL=query-builder.d.ts.map

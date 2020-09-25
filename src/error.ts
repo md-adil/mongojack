@@ -1,5 +1,6 @@
-export class Error extends global.Error {
-  code = "MongoModelError";
+import { MongoError } from "mongodb";
+export class Error extends MongoError {
+  type = "MongoModelError";
 }
 
 export class ConnectionError extends Error {}

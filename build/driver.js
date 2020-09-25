@@ -7,9 +7,12 @@ class Driver {
         if (typeof uri === "string") {
             this.client = new mongodb_1.MongoClient(uri, options);
         }
-        else {
+        else if (uri) {
             this.client = uri;
         }
+    }
+    get database() {
+        return this.client?.db(this.dbName);
     }
     collection(name) {
         if (!this.database) {
@@ -18,9 +21,17 @@ class Driver {
         return this.database.collection(name);
     }
     async connect() {
+        if (!this.client) {
+            throw new Error("client is not set");
+        }
         await this.client.connect();
-        this.database = this.client.db(this.dbName);
         return this;
+    }
+    close() {
+        if (!this.client) {
+            return;
+        }
+        return this.client.close();
     }
 }
 exports.default = Driver;

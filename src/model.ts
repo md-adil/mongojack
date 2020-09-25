@@ -1,18 +1,19 @@
-import { Collection, MongoClientOptions } from "mongodb";
+import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
 
 export interface ModelConstructor<X, Y extends Model<X>> {
   new (attributes: X): Y;
   collection: Collection;
-  observer: Observer<Y>;
+  observer?: Observer<Y>;
 }
 
 interface IDefaultProps {
-  _id: string;
+  _id: ObjectID;
 }
 
 export default abstract class Model<P = Record<string, any>> {
+  static collectionName: string;
   static driver: Driver;
   ["constructor"]: typeof Model;
 
@@ -21,9 +22,11 @@ export default abstract class Model<P = Record<string, any>> {
     this.driver = driver;
     return driver.connect();
   }
+
   static get collection() {
-    return this.driver.collection(this.name);
+    return this.driver.collection(this.collectionName || this.name);
   }
+
   static aggregate() {
     return this.collection.aggregate();
   }
@@ -50,7 +53,7 @@ export default abstract class Model<P = Record<string, any>> {
       const record = await this.constructor.collection.insertOne(
         this.attributes
       );
-      Object.assign(this.attributes, record);
+      this.attributes._id = record.insertedId
     }
     return this;
   }

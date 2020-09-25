@@ -5,48 +5,47 @@ class QueryBuilder {
     constructor(Model) {
         this.Model = Model;
         this._query = {};
+        this._options = {};
     }
-    async find(limit, skip) {
-        limit = limit || this._limit;
-        skip = skip || this._skip;
-        const querybuilder = this.Model.collection.find(this._query, {
-            projection: this._selector,
-            limit,
-            skip,
-        });
+    async find() {
+        console.log("options", this._options);
+        const querybuilder = this.Model.collection.find(this._query, this._options);
         const rows = [];
         for await (const row of querybuilder) {
             rows.push(new this.Model(row));
         }
         return rows;
     }
+    async first() {
+        const row = await this.Model.collection.findOne(this._query, this._options);
+        if (!row) {
+            return null;
+        }
+        return new this.Model(row);
+    }
     take(n) {
-        this._limit = n;
+        this._options.limit = n;
         return this;
     }
     skip(n) {
-        this._skip = n;
+        this._options.skip = n;
+        return this;
+    }
+    sort(n) {
+        this._options.sort = n;
+        return this;
     }
     where(name, value) {
         this._query[name] = value;
         return this;
     }
-    select(...fields) {
-        if (!this._selector) {
-            this._selector = {};
-        }
-        for (const field of fields) {
-            if (typeof field === "string") {
-                this._selector[field] = 1;
-            }
-            else {
-                Object.assign(this._selector, field);
-            }
-        }
-        return this;
+    project(p) {
+        this._options.projection = p;
     }
     clone() {
         const cloned = new QueryBuilder(this.Model);
+        cloned._query = this._query;
+        cloned._options = this._options;
         return cloned;
     }
     async create(props) {
@@ -59,20 +58,42 @@ class QueryBuilder {
         if (observer && observer.created) {
             observer.created(record);
         }
+        return record;
     }
     delete() { }
-    async paginate(page, limit = QueryBuilder.paginateSize) {
+    async modelify(data) {
+        const rows = [];
+        for await (const row of data) {
+            rows.push(new this.Model(row));
+        }
+        return rows;
+    }
+    async paginate(page, limit = QueryBuilder.pageSize) {
         const total = await this.Model.collection.countDocuments(this._query);
-        const docs = await this.find(limit, (page - 1) * limit);
+        const options = { ...this._options, limit, skip: (page - 1) * limit };
+        const docs = await this.modelify(this.Model.collection.find(this._query, options));
         const pages = Math.ceil(total / limit);
         return {
             limit,
             page,
             pages,
             total,
-            docs,
+            docs
+        };
+    }
+    [Symbol.asyncIterator]() {
+        const cursor = this.Model.collection.find(this._query, this._options);
+        const Model = this.Model;
+        return {
+            async next() {
+                const row = await cursor.next();
+                if (!row) {
+                    return { done: true };
+                }
+                return { done: false, value: new Model(row) };
+            }
         };
     }
 }
 exports.default = QueryBuilder;
-QueryBuilder.paginateSize = 25;
+QueryBuilder.pageSize = 25;

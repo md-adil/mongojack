@@ -14,7 +14,7 @@ class Model {
         return driver.connect();
     }
     static get collection() {
-        return this.driver.collection(this.name);
+        return this.driver.collection(this.collectionName || this.name);
     }
     static aggregate() {
         return this.collection.aggregate();
@@ -33,7 +33,7 @@ class Model {
         }
         else {
             const record = await this.constructor.collection.insertOne(this.attributes);
-            Object.assign(this.attributes, record);
+            this.attributes._id = record.insertedId;
         }
         return this;
     }

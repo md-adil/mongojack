@@ -1,15 +1,15 @@
 {
-  "name": "mongomodel",
-  "license": "MIT",
-  "main": "./build/index.js",
-  "dependencies": {
-    "mongodb": "^3.6.2"
-  },
-  "devDependencies": {
-    "@types/mongodb": "^3.5.27",
-    "@types/node": "^14.11.2"
-  },
-  "scripts": {
-    "build": "tsc --build"
-  }
+    "name": "mongomodel",
+    "license": "MIT",
+    "main": "./build/index.js",
+    "dependencies": {
+        "mongodb": "^3.6.2"
+    },
+    "devDependencies": {
+        "@types/mongodb": "^3.5.27",
+        "@types/node": "^14.11.2"
+    },
+    "scripts": {
+        "build": "tsc --build -w"
+    }
 }
