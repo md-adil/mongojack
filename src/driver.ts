@@ -1,4 +1,5 @@
 import { Db, MongoClient, MongoClientOptions } from "mongodb";
+import { Error } from "./error";
 
 export default class Driver {
     client?: MongoClient;

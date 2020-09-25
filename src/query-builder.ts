@@ -1,6 +1,6 @@
 import { Cursor, FindOneOptions } from "mongodb";
-import { nextTick } from "process";
 import Model, { ModelConstructor } from "./model";
+import Pagination from "./pagination";
 
 interface IQueryOption {
   limit?: number;
@@ -86,7 +86,15 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return rows;
   }
 
-  async paginate(page: number, limit: number = QueryBuilder.pageSize) {
+  count() {
+    return this.Model.collection.countDocuments(this._query);
+  }
+
+  paginate(page: number, limit?: number) {
+    return new Pagination<M, P>(this, page, limit);
+  }
+
+  async paginateRaw(page: number, limit: number = QueryBuilder.pageSize) {
     const total = await this.Model.collection.countDocuments(this._query);
     const options = {...this._options, limit, skip: (page - 1) * limit };
     const docs = await this.modelify(this.Model.collection.find<P>(this._query, options as FindOneOptions<any>));
@@ -100,17 +108,9 @@ export default class QueryBuilder<M extends Model<P>, P> {
     };
   }
 
-  [Symbol.asyncIterator]() {
-    const cursor = this.Model.collection.find<P>(this._query, this._options as any);
-    const Model = this.Model;
-    return {
-      async next() {
-        const row = await cursor.next();
-        if (!row) {
-          return { done: true }
-        }
-        return { done: false, value: new Model(row) };
-      }
+  async *[Symbol.asyncIterator]() {
+    for await (const row of this.Model.collection.find<P>(this._query, this._options as any)) {
+        yield new this.Model(row);
     }
   }
 }

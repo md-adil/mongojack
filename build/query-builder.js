@@ -1,5 +1,9 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+const pagination_1 = __importDefault(require("./pagination"));
 class QueryBuilder {
     // eslint-disable-next-line no-shadow
     constructor(Model) {
@@ -68,7 +72,13 @@ class QueryBuilder {
         }
         return rows;
     }
-    async paginate(page, limit = QueryBuilder.pageSize) {
+    count() {
+        return this.Model.collection.countDocuments(this._query);
+    }
+    paginate(page, limit) {
+        return new pagination_1.default(this, page, limit);
+    }
+    async paginateRaw(page, limit = QueryBuilder.pageSize) {
         const total = await this.Model.collection.countDocuments(this._query);
         const options = { ...this._options, limit, skip: (page - 1) * limit };
         const docs = await this.modelify(this.Model.collection.find(this._query, options));
@@ -81,18 +91,10 @@ class QueryBuilder {
             docs
         };
     }
-    [Symbol.asyncIterator]() {
-        const cursor = this.Model.collection.find(this._query, this._options);
-        const Model = this.Model;
-        return {
-            async next() {
-                const row = await cursor.next();
-                if (!row) {
-                    return { done: true };
-                }
-                return { done: false, value: new Model(row) };
-            }
-        };
+    async *[Symbol.asyncIterator]() {
+        for await (const row of this.Model.collection.find(this._query, this._options)) {
+            yield new this.Model(row);
+        }
     }
 }
 exports.default = QueryBuilder;

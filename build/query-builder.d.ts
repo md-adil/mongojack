@@ -1,5 +1,6 @@
 import { Cursor, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
+import Pagination from "./pagination";
 export default class QueryBuilder<M extends Model<P>, P> {
     Model: ModelConstructor<P, M>;
     protected _query: Record<string, string | number>;
@@ -17,21 +18,15 @@ export default class QueryBuilder<M extends Model<P>, P> {
     create(props: Omit<P, "_id">): Promise<M>;
     delete(): void;
     modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;
-    paginate(page: number, limit?: number): Promise<{
+    count(): Promise<number>;
+    paginate(page: number, limit?: number): Pagination<M, P>;
+    paginateRaw(page: number, limit?: number): Promise<{
         limit: number;
         page: number;
         pages: number;
         total: number;
         docs: M[];
     }>;
-    [Symbol.asyncIterator](): {
-        next(): Promise<{
-            done: boolean;
-            value?: undefined;
-        } | {
-            done: boolean;
-            value: M;
-        }>;
-    };
+    [Symbol.asyncIterator](): AsyncGenerator<M, void, unknown>;
 }
 //# sourceMappingURL=query-builder.d.ts.map

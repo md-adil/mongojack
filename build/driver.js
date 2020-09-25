@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
+const error_1 = require("./error");
 class Driver {
     constructor(uri, dbName, options) {
         this.dbName = dbName;
@@ -16,13 +17,13 @@ class Driver {
     }
     collection(name) {
         if (!this.database) {
-            throw new Error("Database is not connected");
+            throw new error_1.Error("Database is not connected");
         }
         return this.database.collection(name);
     }
     async connect() {
         if (!this.client) {
-            throw new Error("client is not set");
+            throw new error_1.Error("client is not set");
         }
         await this.client.connect();
         return this;
