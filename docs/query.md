@@ -17,14 +17,16 @@ run().catch(err => console.log(err));
 
 ```js
 import { Model, QueryBuilder } from "mongomodel";
-
-class UserQueryBuilder<M extends Model<P>, P> extends QueryBuilder<M, P> {
+interface Props {
+    name: string;
+}
+class UserQueryBuilder extends QueryBuilder<User, Props> {
     male() {
         return this.where('gender', 'male');
     }
 }
-class User extends Model {
-    get query() {
+class User extends Model<Props> {
+    static get query() {
         return new UserQueryBuilder(this);
     }
 }
@@ -36,4 +38,13 @@ async function run() {
     }
 }
 run().catch(err => console.log(err));
+```
+
+# Pagination
+```js
+import { Model } from "mongomodel";
+User.query.paginate().then(results => {
+    console.log(results)
+})
+
 ```

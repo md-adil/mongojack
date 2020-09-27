@@ -3,3 +3,4 @@
 - [Model](model.md)
 - [Query](query.md)
 - [Observer](observer.md)
+- [API](api.md)

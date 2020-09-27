@@ -8,17 +8,12 @@ export interface ModelConstructor<X, Y extends Model<X>> {
   observer?: Observer<Y, X>;
 }
 
-interface IDefaultProps {
-  _id: ObjectID;
-}
-
 export default abstract class Model<P = Record<string, any>> {
   static collectionName: string;
   static driver: Driver;
   static primaryKeys = ["_id"];
   static observer?: Observer<Model, Record<string, any>>;
   ["constructor"]: typeof Model;
-
   static connect(url: string, database?: string, options?: MongoClientOptions) {
     const driver = new Driver(url, database, options);
     this.driver = driver;
@@ -33,8 +28,22 @@ export default abstract class Model<P = Record<string, any>> {
     return this.collection.aggregate();
   }
 
-  constructor(public readonly attributes: P & IDefaultProps, public readonly isNew = true) {}
+  hasObserve = true;
 
+  constructor(public readonly attributes: P, public readonly isNew = true) {}
+  
+  get id() {
+    return String(this._id);
+  }
+
+  get _id() {
+    return (this.attributes as any)._id as ObjectID;
+  }
+
+  noObserve() {
+    this.hasObserve = false;
+    return this;
+  }
   toJSON() {
     return this.attributes;
   }
@@ -47,14 +56,16 @@ export default abstract class Model<P = Record<string, any>> {
     if (!this.isNew) {
       return this.update(this.attributes);
     }
-    const observer = this.constructor.observer;
+    const observer = this.hasObserve && this.constructor.observer;
     if (observer && observer.creating) {
       await observer.creating(this);
     }
       const record = await this.constructor.collection.insertOne(
         this.attributes
       );
-      this.attributes._id = record.insertedId
+      if (record.insertedId) {
+        (this.attributes as any)[this.constructor.primaryKeys[0]] = record.insertedId
+      }
       if (observer && observer.created) {
         await observer.creating(this);
       }
@@ -69,7 +80,7 @@ export default abstract class Model<P = Record<string, any>> {
   }
 
   async update(attributes: Partial<P>) {
-    const observer = this.constructor.observer;
+    const observer = this.hasObserve && this.constructor.observer;
     if (observer && observer.updating) {
       await observer.updating(this, attributes);
     }

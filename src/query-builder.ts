@@ -2,14 +2,19 @@ import { Cursor, FilterQuery, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 import Pagination from "./pagination";
 
-export default class QueryBuilder<M extends Model<P>, P> {
+export default class QueryBuilder<M extends Model<P>, P = Record<string, any>> {
   protected _query: Record<string, string | number> = {};
   protected _options: FindOneOptions<P> = {};
 
   static pageSize = 25;
-
+  hasObserver = true;
   // eslint-disable-next-line no-shadow
   constructor(public Model: ModelConstructor<P, M>) {}
+  withoutObserve() {
+    this.hasObserver = false;
+    return this;
+  }
+
 
   async find() {
     const querybuilder = this.Model.collection.find<P>(this._query, this._options as any);
@@ -25,7 +30,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     if (!row) {
       return null;
     }
-    return new this.Model(row);
+    return new this.Model(row, false);
   }
 
   take(n: FindOneOptions<P>["limit"]) {
@@ -66,6 +71,10 @@ export default class QueryBuilder<M extends Model<P>, P> {
     create(props: Omit<P, "_id">) {
         const record = new this.Model(props as any);
         return record.save();
+    }
+
+    createMany(props: Omit<P, "_id">[]) {
+      return this.Model.collection.insertMany(props);
     }
 
     update(items: Partial<P>) {

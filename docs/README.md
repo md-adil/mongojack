@@ -30,7 +30,7 @@ async function run() {
         const user.name // Adil
     }
 
-    await driver.client.close();
+    await driver.close();
 }
 
 run().catch(err => console.log(err));
