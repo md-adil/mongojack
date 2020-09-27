@@ -1,7 +1,7 @@
 import QueryBuilder from "./query-builder";
 import Model from "./model";
 import { Error } from "./error";
-interface IResult<M> {
+export interface IResult<M> {
     total: number;
     limit: number;
     page: number;

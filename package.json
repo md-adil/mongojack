@@ -10,6 +10,7 @@
         "@types/node": "^14.11.2"
     },
     "scripts": {
-        "build": "tsc --build -w"
+        "start": "tsc --build -w",
+        "build": "tsc --build"
     }
 }

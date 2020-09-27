@@ -1,22 +1,26 @@
-import { Cursor, FindOneOptions } from "mongodb";
+import { Cursor, FilterQuery, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 import Pagination from "./pagination";
-export default class QueryBuilder<M extends Model<P>, P> {
-    Model: ModelConstructor<P, M>;
+export default class QueryBuilder<M extends Model<P>, P = Record<string, any>> {
+    Model: ModelConstructor<M, P>;
     protected _query: Record<string, string | number>;
     protected _options: FindOneOptions<P>;
     static pageSize: number;
-    constructor(Model: ModelConstructor<P, M>);
+    hasObserver: boolean;
+    constructor(Model: ModelConstructor<M, P>);
+    noObserve(): this;
     find(): Promise<M[]>;
     first(): Promise<M | null>;
     take(n: FindOneOptions<P>["limit"]): this;
     skip(n: FindOneOptions<P>["skip"]): this;
     sort(n: FindOneOptions<P>["sort"]): this;
-    where(name: string, value: any): this;
+    where(name: keyof P | FilterQuery<P>, value: any): this;
     project(p: FindOneOptions<P>["projection"]): void;
     clone(): QueryBuilder<M, P>;
     create(props: Omit<P, "_id">): Promise<M>;
-    delete(): void;
+    createMany(props: Omit<P, "_id">[]): Promise<import("mongodb").InsertWriteOpResult<any>>;
+    update(items: Partial<P>): Promise<import("mongodb").UpdateWriteOpResult>;
+    delete(): Promise<import("mongodb").DeleteWriteOpResultObject>;
     modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;
     count(): Promise<number>;
     paginate(page: number, limit?: number): Pagination<M, P>;

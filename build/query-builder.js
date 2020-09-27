@@ -10,9 +10,13 @@ class QueryBuilder {
         this.Model = Model;
         this._query = {};
         this._options = {};
+        this.hasObserver = true;
+    }
+    noObserve() {
+        this.hasObserver = false;
+        return this;
     }
     async find() {
-        console.log("options", this._options);
         const querybuilder = this.Model.collection.find(this._query, this._options);
         const rows = [];
         for await (const row of querybuilder) {
@@ -25,7 +29,7 @@ class QueryBuilder {
         if (!row) {
             return null;
         }
-        return new this.Model(row);
+        return new this.Model(row, false);
     }
     take(n) {
         this._options.limit = n;
@@ -40,7 +44,12 @@ class QueryBuilder {
         return this;
     }
     where(name, value) {
-        this._query[name] = value;
+        if (typeof name === "string") {
+            this._query[name] = value;
+        }
+        else {
+            Object.assign(this._query, name);
+        }
         return this;
     }
     project(p) {
@@ -52,23 +61,24 @@ class QueryBuilder {
         cloned._options = this._options;
         return cloned;
     }
-    async create(props) {
-        const observer = this.Model.observer;
+    create(props) {
         const record = new this.Model(props);
-        if (observer && observer.creating) {
-            await observer.creating(record);
-        }
-        await record.save();
-        if (observer && observer.created) {
-            observer.created(record);
-        }
-        return record;
+        record.hasObserve = this.hasObserver;
+        return record.save();
     }
-    delete() { }
+    createMany(props) {
+        return this.Model.collection.insertMany(props);
+    }
+    update(items) {
+        return this.Model.collection.updateMany(this._query, items);
+    }
+    delete() {
+        return this.Model.collection.deleteMany(this._query);
+    }
     async modelify(data) {
         const rows = [];
         for await (const row of data) {
-            rows.push(new this.Model(row));
+            rows.push(new this.Model(row, false));
         }
         return rows;
     }
@@ -93,7 +103,7 @@ class QueryBuilder {
     }
     async *[Symbol.asyncIterator]() {
         for await (const row of this.Model.collection.find(this._query, this._options)) {
-            yield new this.Model(row);
+            yield new this.Model(row, false);
         }
     }
 }

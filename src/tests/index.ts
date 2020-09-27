@@ -1,3 +1,4 @@
+import { serialize } from "v8";
 import { Model } from "..";
 import User from "./user";
 
@@ -7,12 +8,8 @@ const connect = () => {
 
 async function run() {
     const driver = await connect()
-    const user = await User.query.latest().first();
-    const results = await User.collection.insertMany([
-        {_id: null, name: "Adil"}, {_id: false, name: "Aqil"}
-    ]);
-    console.log("inserted", results);
-    // console.log(user?.attributes);
+    const users = User.query.paginate(1);
+    console.log(JSON.stringify(await users));
     driver.close();
 }
 

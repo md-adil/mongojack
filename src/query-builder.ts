@@ -9,8 +9,8 @@ export default class QueryBuilder<M extends Model<P>, P = Record<string, any>> {
   static pageSize = 25;
   hasObserver = true;
   // eslint-disable-next-line no-shadow
-  constructor(public Model: ModelConstructor<P, M>) {}
-  withoutObserve() {
+  constructor(public Model: ModelConstructor<M, P>) {}
+  noObserve() {
     this.hasObserver = false;
     return this;
   }
@@ -70,6 +70,7 @@ export default class QueryBuilder<M extends Model<P>, P = Record<string, any>> {
 
     create(props: Omit<P, "_id">) {
         const record = new this.Model(props as any);
+        record.hasObserve = this.hasObserver;
         return record.save();
     }
 

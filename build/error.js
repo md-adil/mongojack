@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ValidationError = exports.ConnectionError = exports.Error = void 0;
 const mongodb_1 = require("mongodb");
 class Error extends mongodb_1.MongoError {
     constructor() {

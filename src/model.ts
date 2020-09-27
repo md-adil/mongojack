@@ -2,10 +2,10 @@ import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
 
-export interface ModelConstructor<X, Y extends Model<X>> {
-  new (attributes: X, isNew?: boolean): Y;
+export interface ModelConstructor<M extends Model<P>, P> {
+  new (attributes: P, isNew?: boolean): M;
   collection: Collection;
-  observer?: Observer<Y, X>;
+  observer?: Observer<M, P>;
 }
 
 export default abstract class Model<P = Record<string, any>> {
@@ -44,14 +44,7 @@ export default abstract class Model<P = Record<string, any>> {
     this.hasObserve = false;
     return this;
   }
-  toJSON() {
-    return this.attributes;
-  }
-
-  toObject() {
-    return this.attributes;
-  }
-
+  
   async save() {
     if (!this.isNew) {
       return this.update(this.attributes);
@@ -67,7 +60,7 @@ export default abstract class Model<P = Record<string, any>> {
         (this.attributes as any)[this.constructor.primaryKeys[0]] = record.insertedId
       }
       if (observer && observer.created) {
-        await observer.creating(this);
+        await observer.created(this);
       }
     return this;
   }
@@ -81,13 +74,26 @@ export default abstract class Model<P = Record<string, any>> {
 
   async update(attributes: Partial<P>) {
     const observer = this.hasObserve && this.constructor.observer;
+    Object.assign(this.attributes, attributes);
     if (observer && observer.updating) {
       await observer.updating(this, attributes);
     }
-    await this.constructor.collection.updateOne(this.keyQuery, attributes);
+    await this.constructor.collection.updateOne(this.keyQuery, { $set: attributes });
     if (observer && observer.updated) {
       observer.updated(this, attributes);
     }
     return this;
   }
+  async delete() {
+    await this.constructor.collection.deleteOne(this.keyQuery);
+    return this;
+  }
+  toJSON() {
+    return this.attributes;
+  }
+
+  toObject() {
+    return this.attributes;
+  }
+
 }

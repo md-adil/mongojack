@@ -5,6 +5,10 @@ class Observer {
     }
     created(record) {
     }
+    updating(record, attributes) {
+    }
+    updated(record, attributes) {
+    }
     deleting(record) {
     }
     deleted(record) {

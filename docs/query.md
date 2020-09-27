@@ -42,9 +42,49 @@ run().catch(err => console.log(err));
 
 # Pagination
 ```js
-import { Model } from "mongomodel";
-User.query.paginate().then(results => {
+import { Model, Pagination } from "mongomodel";
+
+Pagination.pageSize = 20 // default 25
+
+const page = req.query.page || 1;
+User.query.paginate(page).then(results => {
     console.log(results)
+    // {
+    // total: number;
+    // limit: number;
+    // page: number;
+    // pages: number;
+    // data: M[];
+    // }
 })
 
+User.query.paginate(page, 10 /* override 20, 10 records per page */).then(results => {
+    console.log(results)
+    // {
+        // total: number;
+        // limit: number;
+        // page: number;
+        // pages: number;
+        // data: M[];
+    // }
+})
+
+const users = User.query.paginate(page);
+
+const total = await users.total();
+const pages = await users.pages();
+const page = users.page
+const data = await users.data();
+
+for await (const user of users) {
+    console.log(user); // User
+}
+const response = await users;
+// {
+    // total: number;
+    // limit: number;
+    // page: number;
+    // pages: number;
+    // data: M[];
+// }
 ```

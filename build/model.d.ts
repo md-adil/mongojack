@@ -1,26 +1,32 @@
 import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
-export interface ModelConstructor<X, Y extends Model<X>> {
-    new (attributes: X): Y;
+export interface ModelConstructor<M extends Model<P>, P> {
+    new (attributes: P, isNew?: boolean): M;
     collection: Collection;
-    observer?: Observer<Y>;
-}
-interface IDefaultProps {
-    _id: ObjectID;
+    observer?: Observer<M, P>;
 }
 export default abstract class Model<P = Record<string, any>> {
-    readonly attributes: P & IDefaultProps;
+    readonly attributes: P;
+    readonly isNew: boolean;
     static collectionName: string;
     static driver: Driver;
+    static primaryKeys: string[];
+    static observer?: Observer<Model, Record<string, any>>;
     ["constructor"]: typeof Model;
     static connect(url: string, database?: string, options?: MongoClientOptions): Promise<Driver>;
     static get collection(): Collection<any>;
     static aggregate(): import("mongodb").AggregationCursor<any>;
-    constructor(attributes: P & IDefaultProps);
-    toJSON(): P & IDefaultProps;
-    toObject(): P & IDefaultProps;
+    hasObserve: boolean;
+    constructor(attributes: P, isNew?: boolean);
+    get id(): string;
+    get _id(): ObjectID;
+    noObserve(): this;
     save(): Promise<this>;
+    get keyQuery(): {};
+    update(attributes: Partial<P>): Promise<this>;
+    delete(): Promise<this>;
+    toJSON(): P;
+    toObject(): P;
 }
-export {};
 //# sourceMappingURL=model.d.ts.map
