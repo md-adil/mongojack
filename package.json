@@ -1,7 +1,15 @@
 {
-    "name": "mongomodel",
-    "license": "MIT",
+    "name": "mongojack",
+    "version": "0.0.1",
     "main": "./build/index.js",
+    "keywords": ["MongoDB", "mongoose", "Mongo ORM"],
+    "homepage": "https://md-adil.github.io/mongojack/",
+    "description": "Alternative to mongoose for typescript and nodejs",
+    "author": "Adil <adil.sudo@gmail.com>",
+    "repository": {
+        "url": "https://github.com/md-adil/mongojack",
+        "type": "git"
+    },
     "dependencies": {
         "mongodb": "^3.6.2"
     },
@@ -12,5 +20,6 @@
     "scripts": {
         "start": "tsc --build -w",
         "build": "tsc --build"
-    }
+    },
+    "license": "MIT"
 }

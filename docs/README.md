@@ -1,7 +1,7 @@
 # Quick start
 
 ```js
-import { Model, QueryBuilder } from "mongomodel";
+import { Model, QueryBuilder } from "mongojack";
 
 
 class User extends Model {

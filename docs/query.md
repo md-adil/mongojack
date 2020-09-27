@@ -16,7 +16,7 @@ run().catch(err => console.log(err));
 # Custom query builder
 
 ```js
-import { Model, QueryBuilder } from "mongomodel";
+import { Model, QueryBuilder } from "mongojack";
 interface Props {
     name: string;
 }
@@ -42,7 +42,7 @@ run().catch(err => console.log(err));
 
 # Pagination
 ```js
-import { Model, Pagination } from "mongomodel";
+import { Model, Pagination } from "mongojack";
 
 Pagination.pageSize = 20 // default 25
 

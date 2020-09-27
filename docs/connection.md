@@ -1,8 +1,8 @@
 # Connection
 
 ```js
-import { Model } from "mongomodel";
-Model.connect("mongo://localhost", "hellodb");
+import { Model } from "mongojack";
+Model.connect("mongodb://localhost", "dbname",  { useUnifiedTopology: true });
 ```
 
 # Mongoose connection
@@ -11,7 +11,7 @@ Model.connect("mongo://localhost", "hellodb");
 
 ```js
 import mongoose from "mongoose";
-import { Driver, Model } from "mongomodel";
+import { Driver, Model } from "mongojack";
 class MyDriver extends Driver {
     get database() {
         return mongoose.connection.db;

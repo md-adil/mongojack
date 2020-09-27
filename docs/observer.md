@@ -1,7 +1,7 @@
 # Change events
 
 ```js
-import { Mode, Observer } from "mongomodel"
+import { Mode, Observer } from "mongojack"
 
 class UserObserver extends Observer<User> {
     async creating(user: User) {

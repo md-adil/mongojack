@@ -2,7 +2,7 @@
 
 ```js
 import { ObjectID } from "mongodb"
-import { Model, QueryBuilder } from "mongomodel"
+import { Model, QueryBuilder } from "mongojack"
 interface IProps {
     _id: ObjectID;
     name: string;
