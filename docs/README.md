@@ -27,7 +27,7 @@ async function run() {
     // querying
 
     for await (const user of User.query.where(name, "Adil").take(10)) {
-        const user.name // Adil
+        user.name // Adil
     }
 
     await driver.close();
