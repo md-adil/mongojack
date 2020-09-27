@@ -35,3 +35,6 @@ async function run() {
 
 run().catch(err => console.log(err));
 ```
+
+See [Full documetation](https://md-adil.github.io/mongojack) here.
+
