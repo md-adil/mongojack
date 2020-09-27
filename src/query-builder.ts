@@ -2,7 +2,7 @@ import { Cursor, FilterQuery, FindOneOptions } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 import Pagination from "./pagination";
 
-export default class QueryBuilder<M extends Model<P>, P = Record<string, any>> {
+export default class QueryBuilder<M extends Model<P>, P> {
   protected _query: Record<string, string | number> = {};
   protected _options: FindOneOptions<P> = {};
 

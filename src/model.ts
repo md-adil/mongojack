@@ -5,15 +5,18 @@ import Observer from "./observer";
 export interface ModelConstructor<M extends Model<P>, P> {
   new (attributes: P, isNew?: boolean): M;
   collection: Collection;
-  observer?: Observer<M, P>;
+  driver: Driver;
+  collectionName?: string;
+  observer?: Observer<M>;
 }
 
 export default abstract class Model<P = Record<string, any>> {
   static collectionName: string;
   static driver: Driver;
   static primaryKeys = ["_id"];
-  static observer?: Observer<Model, Record<string, any>>;
+  static observer?: Observer<any>;
   ["constructor"]: typeof Model;
+  
   static connect(url: string, database?: string, options?: MongoClientOptions) {
     const driver = new Driver(url, database, options);
     this.driver = driver;

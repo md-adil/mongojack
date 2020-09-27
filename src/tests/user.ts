@@ -4,7 +4,7 @@ interface IProps {
     name: string;
 }
 
-class UserObserver extends Observer<User, IProps> {
+class UserObserver extends Observer<User> {
     creating() {
         console.log("creating");
     }
@@ -14,19 +14,18 @@ class UserObserver extends Observer<User, IProps> {
     }
 }
 
-class UserQuery extends QueryBuilder<User, IProps> {
-    latest() {
-        return this.sort({createdAt: -1});
-    }
-}
-
 class User extends Model<IProps> {
     static collectionName = "users";
     static get query() {
-        return new UserQuery(this);
+        return new QueryBuilder(this);
     }
+
     static get observer() {
         return new UserObserver();
+    }
+
+    get name() {
+        return this.attributes.name;
     }
 }
 

@@ -10,8 +10,8 @@ const connect = () => {
 };
 async function run() {
     const driver = await connect();
-    const users = user_1.default.query.paginate(1);
-    console.log(JSON.stringify(await users));
+    const user = await user_1.default.query.first();
+    console.log(user?.name);
     driver.close();
 }
 run().catch(err => console.log(err));

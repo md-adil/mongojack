@@ -4,7 +4,9 @@ import Observer from "./observer";
 export interface ModelConstructor<M extends Model<P>, P> {
     new (attributes: P, isNew?: boolean): M;
     collection: Collection;
-    observer?: Observer<M, P>;
+    driver: Driver;
+    collectionName?: string;
+    observer?: Observer<M>;
 }
 export default abstract class Model<P = Record<string, any>> {
     readonly attributes: P;
@@ -12,7 +14,7 @@ export default abstract class Model<P = Record<string, any>> {
     static collectionName: string;
     static driver: Driver;
     static primaryKeys: string[];
-    static observer?: Observer<Model, Record<string, any>>;
+    static observer?: Observer<any>;
     ["constructor"]: typeof Model;
     static connect(url: string, database?: string, options?: MongoClientOptions): Promise<Driver>;
     static get collection(): Collection<any>;

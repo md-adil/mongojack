@@ -9,17 +9,15 @@ class UserObserver extends __1.Observer {
         console.log("created");
     }
 }
-class UserQuery extends __1.QueryBuilder {
-    latest() {
-        return this.sort({ createdAt: -1 });
-    }
-}
 class User extends __1.Model {
     static get query() {
-        return new UserQuery(this);
+        return new __1.QueryBuilder(this);
     }
     static get observer() {
         return new UserObserver();
+    }
+    get name() {
+        return this.attributes.name;
     }
 }
 User.collectionName = "users";

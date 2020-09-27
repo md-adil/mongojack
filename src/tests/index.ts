@@ -1,4 +1,3 @@
-import { serialize } from "v8";
 import { Model } from "..";
 import User from "./user";
 
@@ -8,8 +7,8 @@ const connect = () => {
 
 async function run() {
     const driver = await connect()
-    const users = User.query.paginate(1);
-    console.log(JSON.stringify(await users));
+    const user = await User.query.first();
+    console.log(user?.name);
     driver.close();
 }
 

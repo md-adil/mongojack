@@ -8,7 +8,7 @@ interface IProps {
     name: string;
 }
 class User extends Model<IProps> {
-    static collectionName = "users";
+    static collectionName = "users"; // you can omit this property default collection name willbe used as class name User
     static get query() {
         return new QueryBuilder(this);
     }
