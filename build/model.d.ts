@@ -8,7 +8,7 @@ export interface ModelConstructor<M extends Model<P>, P> {
     driver: Driver;
     collectionName?: string;
     observer?: Observer<M>;
-    validateSchema(attributes: any, fields?: string[]): any;
+    validateSchema(attributes: any, isUpdate?: boolean): any;
 }
 export default abstract class Model<P = Record<string, any>> {
     readonly attributes: P;
@@ -17,12 +17,12 @@ export default abstract class Model<P = Record<string, any>> {
     static driver: Driver;
     static primaryKeys: string[];
     static observer?: Observer<any>;
-    static schema?: Record<string, Joi.Schema>;
+    static schema?: Record<string, any> | Joi.AnySchema;
     static hidden: string[];
     static append: string[];
     ["constructor"]: typeof Model;
     static connect(url: string, database?: string, options?: MongoClientOptions): Promise<Driver>;
-    static validateSchema(values: any, fields?: string[]): any;
+    static validateSchema(values: any, isUpdate?: boolean): any;
     static get collection(): Collection<any>;
     static aggregate(): import("mongodb").AggregationCursor<any>;
     hasObserve: boolean;

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const joi_1 = __importDefault(require("joi"));
 const driver_1 = __importDefault(require("./driver"));
 const error_1 = require("./error");
+const dot_object_1 = __importDefault(require("dot-object"));
 const lodash_1 = __importDefault(require("lodash"));
 class Model {
     constructor(attributes, isNew = true) {
@@ -18,15 +19,20 @@ class Model {
         this.driver = driver;
         return driver.connect();
     }
-    static validateSchema(values, fields) {
+    static validateSchema(values, isUpdate = false) {
         let schema = this.schema;
-        if (schema) {
+        if (!schema) {
             return values;
         }
-        if (fields) {
-            schema = lodash_1.default.pick(schema, fields);
+        if (isUpdate) {
+            const newSchema = {};
+            const keys = Object.keys(dot_object_1.default.dot(values));
+            keys.forEach(k => {
+                dot_object_1.default.str(k, dot_object_1.default.pick(k, schema), newSchema);
+            });
+            schema = newSchema;
         }
-        const data = joi_1.default.object(schema).validate(values);
+        const data = joi_1.default.compile(schema).validate(values);
         if (data.error) {
             throw new error_1.ValidationError(data.error.message);
         }
@@ -75,7 +81,7 @@ class Model {
         }, {});
     }
     async update(attributes) {
-        attributes = this.constructor.validateSchema(attributes, Object.keys(attributes));
+        attributes = this.constructor.validateSchema(attributes, true);
         const observer = this.hasObserve && this.constructor.observer;
         Object.assign(this.attributes, attributes);
         if (observer && observer.updating) {

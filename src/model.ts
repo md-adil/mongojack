@@ -3,6 +3,7 @@ import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
 import { ValidationError } from "./error";
+import dot from "dot-object";
 import _ from "lodash";
 
 export interface ModelConstructor<M extends Model<P>, P> {
@@ -11,7 +12,7 @@ export interface ModelConstructor<M extends Model<P>, P> {
   driver: Driver;
   collectionName?: string;
   observer?: Observer<M>;
-  validateSchema(attributes: any, fields?: string[]): any;
+  validateSchema(attributes: any, isUpdate?: boolean): any;
 }
 
 export default abstract class Model<P = Record<string, any>> {
@@ -19,7 +20,7 @@ export default abstract class Model<P = Record<string, any>> {
   static driver: Driver;
   static primaryKeys = ["_id"];
   static observer?: Observer<any>;
-  static schema?: Record<string, Joi.Schema>;
+  static schema?: Record<string, any> | Joi.AnySchema;
   static hidden: string[] = [];
   static append: string[] = [];
 
@@ -31,15 +32,20 @@ export default abstract class Model<P = Record<string, any>> {
     return driver.connect();
   }
 
-  static validateSchema(values: any, fields?: string[]) {
+  static validateSchema(values: any, isUpdate = false) {
     let schema = this.schema;
-    if (schema) {
+    if (!schema) {
       return values;
     }
-    if (fields) {
-      schema = _.pick(schema, fields);
+    if (isUpdate) {
+      const newSchema = {};
+      const keys = Object.keys(dot.dot(values));
+      keys.forEach(k => {
+        dot.str(k, dot.pick(k, schema), newSchema);
+      })
+      schema = newSchema;
     }
-    const data = Joi.object(schema).validate(values);
+    const data = Joi.compile(schema!).validate(values);
     if (data.error) {
       throw new ValidationError(data.error.message);
     }
@@ -102,7 +108,7 @@ export default abstract class Model<P = Record<string, any>> {
   }
 
   async update(attributes: Partial<P>) {
-    attributes = this.constructor.validateSchema(attributes, Object.keys(attributes));
+    attributes = this.constructor.validateSchema(attributes, true);
     const observer = this.hasObserve && this.constructor.observer;
     Object.assign(this.attributes, attributes);
     if (observer && observer.updating) {

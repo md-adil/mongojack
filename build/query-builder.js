@@ -78,7 +78,7 @@ class QueryBuilder {
         if (observer && observer.creating) {
             await Promise.all(rows.map(row => observer.creating(row)));
         }
-        const inserted = await this.Model.collection.insertMany(props);
+        const inserted = await this.Model.collection.insertMany(props.map(prop => this.Model.validateSchema(prop)));
         for (let i = 0; i > rows.length; i++) {
             const row = rows[i];
             row.attributes._id = inserted[i];
@@ -90,7 +90,7 @@ class QueryBuilder {
     }
     update(items) {
         return this.Model.collection.updateMany(this._query, {
-            $set: this.Model.validateSchema(items, Object.keys(items))
+            $set: this.Model.validateSchema(items, true)
         });
     }
     delete() {

@@ -22,6 +22,44 @@ console.log(user._id) // ObjectID
 console.log(user.toObject()) // user.attributes
 console.log(user.toJSON()) // user.attributes 
 ```
+# Schema
+
+```js
+import { Model, schema } from "mongojack";
+class User extends Model {
+    static schema: {
+        name: schema.string().required(),
+        phone: schema.string().min(10).max(10).required()
+    }
+}
+// we are using joi schema underneath, please check full list of validation
+// https://joi.dev/api
+```
+
+# Append field
+```js
+class User extends Model {
+    static append = ['fullname'];
+    fullname() {
+        return this.attributes.firstname + " " this.attributes.lastname;
+    }
+}
+
+const user = new User({firstname: "Hello", lastname: "world"});
+
+user.toJSON() // {"firstname": "Hello", "lastname": "world", "fullname": "Hello world"}
+
+```
+
+# Hidden field
+```js
+class User extends Model {
+    static hidden = ['password'];
+}
+
+const user = new User({name: "Hello", password: "asbc"});
+user.toJSON() // {"name": "Hello" }
+```
 
 # Create record
 ```js

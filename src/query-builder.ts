@@ -87,7 +87,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
       if (observer && observer.creating) {
         await Promise.all(rows.map(row => observer.creating(row)));
       }
-      const inserted = await this.Model.collection.insertMany(props);
+      const inserted = await this.Model.collection.insertMany(props.map(prop => this.Model.validateSchema(prop)));
       for (let i = 0; i > rows.length; i++) {
         const row = rows[i];
         (row.attributes as any)._id = (inserted as any)[i];
@@ -95,18 +95,17 @@ export default class QueryBuilder<M extends Model<P>, P> {
           observer.created(row);
         }
       }
-
       return rows;
     }
 
     update(items: Partial<P>) {
         return this.Model.collection.updateMany(this._query, {
-          $set: this.Model.validateSchema(items, Object.keys(items))
+          $set: this.Model.validateSchema(items, true)
         });
     }
 
     delete() {
-        return this.Model.collection.deleteMany(this._query);
+      return this.Model.collection.deleteMany(this._query);
     }
 
   async modelify(data: AsyncGenerator<P> | Cursor<P>) {
