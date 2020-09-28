@@ -1,6 +1,9 @@
+import Joi from "joi";
 import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
+import { ValidationError } from "./error";
+import _ from "lodash";
 
 export interface ModelConstructor<M extends Model<P>, P> {
   new (attributes: P, isNew?: boolean): M;
@@ -8,6 +11,7 @@ export interface ModelConstructor<M extends Model<P>, P> {
   driver: Driver;
   collectionName?: string;
   observer?: Observer<M>;
+  validateSchema(attributes: any, fields?: string[]): any;
 }
 
 export default abstract class Model<P = Record<string, any>> {
@@ -15,12 +19,28 @@ export default abstract class Model<P = Record<string, any>> {
   static driver: Driver;
   static primaryKeys = ["_id"];
   static observer?: Observer<any>;
+  static schema?: Record<string, Joi.Schema>;
   ["constructor"]: typeof Model;
   
   static connect(url: string, database?: string, options?: MongoClientOptions) {
     const driver = new Driver(url, database, options);
     this.driver = driver;
     return driver.connect();
+  }
+
+  static validateSchema(values: any, fields?: string[]) {
+    let schema = this.schema;
+    if (schema) {
+      return values;
+    }
+    if (fields) {
+      schema = _.pick(schema, fields);
+    }
+    const data = Joi.object(schema).validate(values);
+    if (data.error) {
+      throw new ValidationError(data.error.message);
+    }
+    return data.value;
   }
 
   static get collection() {
@@ -52,6 +72,8 @@ export default abstract class Model<P = Record<string, any>> {
     if (!this.isNew) {
       return this.update(this.attributes);
     }
+    const attributes = this.constructor.validateSchema(this.attributes);
+    Object.assign(this.attributes, attributes);
     const observer = this.hasObserve && this.constructor.observer;
     if (observer && observer.creating) {
       console.log('trying to create');
@@ -77,6 +99,7 @@ export default abstract class Model<P = Record<string, any>> {
   }
 
   async update(attributes: Partial<P>) {
+    attributes = this.constructor.validateSchema(attributes, Object.keys(attributes));
     const observer = this.hasObserve && this.constructor.observer;
     Object.assign(this.attributes, attributes);
     if (observer && observer.updating) {
