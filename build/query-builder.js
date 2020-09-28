@@ -72,11 +72,26 @@ class QueryBuilder {
         record.hasObserve = this.hasObserver;
         return record.save();
     }
-    createMany(props) {
-        return this.Model.collection.insertMany(props);
+    async createMany(props) {
+        const observer = this.hasObserver && this.Model.observer;
+        const rows = props.map(prop => new this.Model(prop));
+        if (observer && observer.creating) {
+            await Promise.all(rows.map(row => observer.creating(row)));
+        }
+        const inserted = await this.Model.collection.insertMany(props);
+        for (let i = 0; i > rows.length; i++) {
+            const row = rows[i];
+            row.attributes._id = inserted[i];
+            if (observer && observer.created) {
+                observer.created(row);
+            }
+        }
+        return rows;
     }
     update(items) {
-        return this.Model.collection.updateMany(this._query, items);
+        return this.Model.collection.updateMany(this._query, {
+            $set: this.Model.validateSchema(items, Object.keys(items))
+        });
     }
     delete() {
         return this.Model.collection.deleteMany(this._query);

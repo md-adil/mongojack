@@ -3,7 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const joi_1 = __importDefault(require("joi"));
 const driver_1 = __importDefault(require("./driver"));
+const error_1 = require("./error");
+const lodash_1 = __importDefault(require("lodash"));
 class Model {
     constructor(attributes, isNew = true) {
         this.attributes = attributes;
@@ -14,6 +17,20 @@ class Model {
         const driver = new driver_1.default(url, database, options);
         this.driver = driver;
         return driver.connect();
+    }
+    static validateSchema(values, fields) {
+        let schema = this.schema;
+        if (schema) {
+            return values;
+        }
+        if (fields) {
+            schema = lodash_1.default.pick(schema, fields);
+        }
+        const data = joi_1.default.object(schema).validate(values);
+        if (data.error) {
+            throw new error_1.ValidationError(data.error.message);
+        }
+        return data.value;
     }
     static get collection() {
         return this.driver.collection(this.collectionName || this.name);
@@ -35,6 +52,8 @@ class Model {
         if (!this.isNew) {
             return this.update(this.attributes);
         }
+        const attributes = this.constructor.validateSchema(this.attributes);
+        Object.assign(this.attributes, attributes);
         const observer = this.hasObserve && this.constructor.observer;
         if (observer && observer.creating) {
             console.log('trying to create');
@@ -56,6 +75,7 @@ class Model {
         }, {});
     }
     async update(attributes) {
+        attributes = this.constructor.validateSchema(attributes, Object.keys(attributes));
         const observer = this.hasObserve && this.constructor.observer;
         Object.assign(this.attributes, attributes);
         if (observer && observer.updating) {
@@ -79,7 +99,14 @@ class Model {
         return this;
     }
     toJSON() {
-        return this.attributes;
+        let attributes = this.attributes;
+        if (this.constructor.hidden.length) {
+            attributes = lodash_1.default.omit(attributes, this.constructor.hidden);
+        }
+        if (this.constructor.append) {
+            lodash_1.default.extend(attributes, lodash_1.default.pick(this, this.constructor.append));
+        }
+        return attributes;
     }
     toObject() {
         return this.attributes;
@@ -87,3 +114,5 @@ class Model {
 }
 exports.default = Model;
 Model.primaryKeys = ["_id"];
+Model.hidden = [];
+Model.append = [];

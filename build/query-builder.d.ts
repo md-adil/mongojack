@@ -20,7 +20,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     project(p: FindOneOptions<P>["projection"]): void;
     clone(): QueryBuilder<M, P>;
     create(props: Omit<P, "_id">): Promise<M>;
-    createMany(props: Omit<P, "_id">[]): Promise<import("mongodb").InsertWriteOpResult<any>>;
+    createMany(props: Partial<P>[]): Promise<M[]>;
     update(items: Partial<P>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(): Promise<import("mongodb").DeleteWriteOpResultObject>;
     modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;

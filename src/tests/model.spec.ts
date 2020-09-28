@@ -24,11 +24,16 @@ describe("User", () => {
         }
     
         class User extends Model<IProps> {
+            static hidden = ['_id'];
+            static append = ['fullName'];
             get name() {
                 return this.attributes.name;
             }
+            get fullName() {
+                return this.attributes.name;
+            }
         }
-        const user = new User({name: "Adil", _id: new ObjectId()}, false);
+        const user = new User({ name: "Adil", _id: new ObjectId() }, false);
         it("name", () => {
             assert.strictEqual(user.name, "Adil", "User name should be Adil");
         });
@@ -39,7 +44,7 @@ describe("User", () => {
             assert.strictEqual(user.id, String(user._id));
         });
         it("toJSON should be equal to attribute", () => {
-            assert.strictEqual(user.toJSON(), user.attributes);
+            assert.deepEqual(user.toJSON(), {fullName: "Adil", ...require('lodash').omit(user.attributes, ['_id']) });
         })
         it("toObject should be equal to attribute", () => {
             assert.strictEqual(user.toObject(), user.attributes);

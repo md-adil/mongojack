@@ -20,6 +20,9 @@ export default abstract class Model<P = Record<string, any>> {
   static primaryKeys = ["_id"];
   static observer?: Observer<any>;
   static schema?: Record<string, Joi.Schema>;
+  static hidden: string[] = [];
+  static append: string[] = [];
+
   ["constructor"]: typeof Model;
   
   static connect(url: string, database?: string, options?: MongoClientOptions) {
@@ -122,8 +125,16 @@ export default abstract class Model<P = Record<string, any>> {
     }
     return this;
   }
+
   toJSON() {
-    return this.attributes;
+    let attributes: any = this.attributes;
+    if (this.constructor.hidden.length) {
+        attributes = _.omit(attributes, this.constructor.hidden);
+    }
+    if (this.constructor.append) {
+      _.extend(attributes, _.pick(this, this.constructor.append));
+    }
+    return attributes;
   }
 
   toObject() {
