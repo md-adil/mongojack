@@ -15,6 +15,13 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return this;
   }
 
+  get query() {
+    return this._query;
+  }
+
+  get options() {
+    return this._options;
+  }
 
   async find() {
     const querybuilder = this.Model.collection.find<P>(this._query, this._options as any);
@@ -48,7 +55,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return this;
   }
 
-  where(name: keyof P | FilterQuery<P>, value: any) {
+  where(name: keyof P | FilterQuery<P>, value?: any) {
       if (typeof name === "string") {
           this._query[name] = value;
       } else {
@@ -98,22 +105,14 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return this.Model.collection.countDocuments(this._query);
   }
 
-  paginate(page: number, limit?: number) {
+  paginate(page?: number | string, limit?: number) {
+    if (!page) {
+        page = 1;
+    }
+    if (typeof page === "string") {
+      page = parseInt(page, 10);
+    }
     return new Pagination<M, P>(this, page, limit);
-  }
-
-  async paginateRaw(page: number, limit: number = QueryBuilder.pageSize) {
-    const total = await this.Model.collection.countDocuments(this._query);
-    const options = {...this._options, limit, skip: (page - 1) * limit };
-    const docs = await this.modelify(this.Model.collection.find<P>(this._query, options as FindOneOptions<any>));
-    const pages = Math.ceil(total / limit);
-    return {
-        limit,
-        page,
-        pages,
-        total,
-        docs
-    };
   }
 
   async *[Symbol.asyncIterator]() {

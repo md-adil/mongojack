@@ -4,6 +4,19 @@ import { Model, Observer, QueryBuilder } from "..";
 import { Collection } from "./connection";
 
 describe("User", () => {
+    describe("Define model", () => {
+        interface IProps {
+            _id: ObjectID;
+            name: string;
+        }
+    
+        class User extends Model<IProps> {
+            get name() {
+                return this.attributes.name;
+            }
+        }
+        const user = new User({name: "Adil", _id: new ObjectId()}, false);
+    });
     describe("getters", () => {
         interface IProps {
             _id: ObjectID;
@@ -19,7 +32,7 @@ describe("User", () => {
         it("name", () => {
             assert.strictEqual(user.name, "Adil", "User name should be Adil");
         });
-        it ("_id shoud be instance of ObjectId", () => {
+        it ("_id should be instance of ObjectId", () => {
             assert.instanceOf(user._id, ObjectID);
         })
         it ("id should be string of objectid", () => {
@@ -85,6 +98,25 @@ describe("User", () => {
 
         it ("Shoud instance of query", () => {
             assert.instanceOf(User.query, QueryBuilder);
+        });
+    });
+
+    describe("Custom Qyery", () => {
+        class UserQuery extends QueryBuilder<User, any> {
+            male() {
+                return this.where("gender", "male");
+            }
+        }
+        class User extends Model<any> {
+            static get query() {
+                return new UserQuery(this);
+            }
+        }
+
+        it ("Shoud gender male", () => {
+            const q = User.query.male();
+            assert.instanceOf(q, QueryBuilder);
+            assert(q.query.gender === "male", "Gender should be male");
         });
     });
 });

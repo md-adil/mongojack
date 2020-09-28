@@ -9,12 +9,14 @@ export default class QueryBuilder<M extends Model<P>, P> {
     hasObserver: boolean;
     constructor(Model: ModelConstructor<M, P>);
     noObserve(): this;
+    get query(): Record<string, string | number>;
+    get options(): FindOneOptions<P>;
     find(): Promise<M[]>;
     first(): Promise<M | null>;
     take(n: FindOneOptions<P>["limit"]): this;
     skip(n: FindOneOptions<P>["skip"]): this;
     sort(n: FindOneOptions<P>["sort"]): this;
-    where(name: keyof P | FilterQuery<P>, value: any): this;
+    where(name: keyof P | FilterQuery<P>, value?: any): this;
     project(p: FindOneOptions<P>["projection"]): void;
     clone(): QueryBuilder<M, P>;
     create(props: Omit<P, "_id">): Promise<M>;
@@ -23,14 +25,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     delete(): Promise<import("mongodb").DeleteWriteOpResultObject>;
     modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;
     count(): Promise<number>;
-    paginate(page: number, limit?: number): Pagination<M, P>;
-    paginateRaw(page: number, limit?: number): Promise<{
-        limit: number;
-        page: number;
-        pages: number;
-        total: number;
-        docs: M[];
-    }>;
+    paginate(page?: number | string, limit?: number): Pagination<M, P>;
     [Symbol.asyncIterator](): AsyncGenerator<M, void, unknown>;
 }
 //# sourceMappingURL=query-builder.d.ts.map

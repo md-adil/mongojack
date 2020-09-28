@@ -16,6 +16,12 @@ class QueryBuilder {
         this.hasObserver = false;
         return this;
     }
+    get query() {
+        return this._query;
+    }
+    get options() {
+        return this._options;
+    }
     async find() {
         const querybuilder = this.Model.collection.find(this._query, this._options);
         const rows = [];
@@ -86,20 +92,13 @@ class QueryBuilder {
         return this.Model.collection.countDocuments(this._query);
     }
     paginate(page, limit) {
+        if (!page) {
+            page = 1;
+        }
+        if (typeof page === "string") {
+            page = parseInt(page, 10);
+        }
         return new pagination_1.default(this, page, limit);
-    }
-    async paginateRaw(page, limit = QueryBuilder.pageSize) {
-        const total = await this.Model.collection.countDocuments(this._query);
-        const options = { ...this._options, limit, skip: (page - 1) * limit };
-        const docs = await this.modelify(this.Model.collection.find(this._query, options));
-        const pages = Math.ceil(total / limit);
-        return {
-            limit,
-            page,
-            pages,
-            total,
-            docs
-        };
     }
     async *[Symbol.asyncIterator]() {
         for await (const row of this.Model.collection.find(this._query, this._options)) {
