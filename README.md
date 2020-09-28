@@ -16,7 +16,7 @@ class User extends Model {
 }
 
 async function run() {
-    const driver = await Model.connect("mongodb://127.0.0.1:27017", "yacs");
+    const driver = await Model.connect("mongodb://127.0.0.1:27017", "hellodb");
     const users = await User.query.find();
     console.log(users);
     // or

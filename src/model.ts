@@ -54,6 +54,7 @@ export default abstract class Model<P = Record<string, any>> {
     }
     const observer = this.hasObserve && this.constructor.observer;
     if (observer && observer.creating) {
+      console.log('trying to create');
       await observer.creating(this);
     }
       const record = await this.constructor.collection.insertOne(
@@ -88,7 +89,14 @@ export default abstract class Model<P = Record<string, any>> {
     return this;
   }
   async delete() {
+    const observer = this.hasObserve && this.constructor.observer;
+    if (observer && observer.deleting) {
+      await observer.deleting(this);
+    }
     await this.constructor.collection.deleteOne(this.keyQuery);
+    if (observer && observer.deleted) {
+      await observer.deleted(this);
+    }
     return this;
   }
   toJSON() {
@@ -98,5 +106,4 @@ export default abstract class Model<P = Record<string, any>> {
   toObject() {
     return this.attributes;
   }
-
 }

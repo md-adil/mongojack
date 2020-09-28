@@ -37,6 +37,7 @@ class Model {
         }
         const observer = this.hasObserve && this.constructor.observer;
         if (observer && observer.creating) {
+            console.log('trying to create');
             await observer.creating(this);
         }
         const record = await this.constructor.collection.insertOne(this.attributes);
@@ -67,7 +68,14 @@ class Model {
         return this;
     }
     async delete() {
+        const observer = this.hasObserve && this.constructor.observer;
+        if (observer && observer.deleting) {
+            await observer.deleting(this);
+        }
         await this.constructor.collection.deleteOne(this.keyQuery);
+        if (observer && observer.deleted) {
+            await observer.deleted(this);
+        }
         return this;
     }
     toJSON() {
