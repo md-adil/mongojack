@@ -98,6 +98,22 @@ export default class QueryBuilder<M extends Model<P>, P> {
       return rows;
     }
 
+    async increment() {
+
+    }
+
+    async decrement() {
+
+    }
+
+    async push() {
+
+    }
+
+    async pull() {
+
+    }
+
     update(items: Partial<P>) {
         return this.Model.collection.updateMany(this._query, {
           $set: this.Model.validateSchema(items, true)

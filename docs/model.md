@@ -16,6 +16,10 @@ class User extends Model<IProps> {
 ```
 # Default getters
 ```js
+const collection = User.collection; // mongodb native collection.
+collection.findOne({_id: ObjectId('someid')}).then((result) => {
+    console.log(result) // result object
+})
 const user = User.query.first();
 console.log(user.id) // string id
 console.log(user._id) // ObjectID
@@ -91,6 +95,11 @@ await user.update({name: "world"});
 ```js
     const user = User.query.where({name: "adil"}).first();
     await user.delete();
+    // or
+    await User.query.where({ name: "Adil" }).delete(); // delete all records containing name adil
+    // or using native driver
+    await User.collection.deleteMany({name: "Adil"});
+
 ```
 
 
@@ -102,7 +111,10 @@ async function run() {
         console.log("User not found");
     }
 
-    user.attributes.name // "Adil"
+    user.attributes.name; // "Adil"
+
+    // Alway use native driver
+    const users: any[] = await User.collection.find({name: "Adil"}).toArray();
 }
 run().catch(err => console.log(err));
 ```
