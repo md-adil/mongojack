@@ -28,10 +28,12 @@ console.log(user.toJSON()) // user.attributes
 import { Model, schema } from "mongojack";
 class User extends Model {
     static schema: {
-        name: schema.string().required(),
-        phone: schema.string().min(10).max(10).required()
+        name: schema.string().optional().default("Hello"),
+        phone: schema.number().min(10).max(10)
     }
 }
+
+// default all fields are required, you have to explicitly make field optional by calling optional property
 // we are using joi schema underneath, please check full list of validation
 // https://joi.dev/api
 ```
@@ -45,7 +47,7 @@ class User extends Model {
     }
 }
 
-const user = new User({firstname: "Hello", lastname: "world"});
+const user = new User({ firstname: "Hello", lastname: "world" });
 
 user.toJSON() // {"firstname": "Hello", "lastname": "world", "fullname": "Hello world"}
 

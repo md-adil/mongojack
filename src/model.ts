@@ -37,15 +37,14 @@ export default abstract class Model<P = Record<string, any>> {
     if (!schema) {
       return values;
     }
+    let options: Joi.ValidationOptions = {
+      presence: "required"
+    };
     if (isUpdate) {
-      const newSchema = {};
-      const keys = Object.keys(dot.dot(values));
-      keys.forEach(k => {
-        dot.str(k, dot.pick(k, schema), newSchema);
-      })
-      schema = newSchema;
+      options.presence = "optional";
+      options.noDefaults = true;
     }
-    const data = Joi.compile(schema!).validate(values);
+    const data = Joi.compile(schema!).validate(values, options);
     if (data.error) {
       throw new ValidationError(data.error.message);
     }
@@ -62,7 +61,11 @@ export default abstract class Model<P = Record<string, any>> {
 
   hasObserve = true;
 
-  constructor(public readonly attributes: P, public readonly isNew = true) {}
+  public readonly attributes: P;
+
+  constructor(attributes: Partial<P>, public readonly isNew = true) {
+    this.attributes = attributes as P;
+  }
   
   get id() {
     return String(this._id);
@@ -79,7 +82,9 @@ export default abstract class Model<P = Record<string, any>> {
   
   async save() {
     if (!this.isNew) {
-      return this.update(this.attributes);
+      return this.update(
+        _.omit(this.attributes as any, this.constructor.primaryKeys) as any
+      );
     }
     const attributes = this.constructor.validateSchema(this.attributes);
     Object.assign(this.attributes, attributes);
@@ -108,6 +113,7 @@ export default abstract class Model<P = Record<string, any>> {
   }
 
   async update(attributes: Partial<P>) {
+    console.log("Saving", attributes);
     attributes = this.constructor.validateSchema(attributes, true);
     const observer = this.hasObserve && this.constructor.observer;
     Object.assign(this.attributes, attributes);

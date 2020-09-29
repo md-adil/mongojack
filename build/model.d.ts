@@ -11,7 +11,6 @@ export interface ModelConstructor<M extends Model<P>, P> {
     validateSchema(attributes: any, isUpdate?: boolean): any;
 }
 export default abstract class Model<P = Record<string, any>> {
-    readonly attributes: P;
     readonly isNew: boolean;
     static collectionName: string;
     static driver: Driver;
@@ -26,7 +25,8 @@ export default abstract class Model<P = Record<string, any>> {
     static get collection(): Collection<any>;
     static aggregate(): import("mongodb").AggregationCursor<any>;
     hasObserve: boolean;
-    constructor(attributes: P, isNew?: boolean);
+    readonly attributes: P;
+    constructor(attributes: Partial<P>, isNew?: boolean);
     get id(): string;
     get _id(): ObjectID;
     noObserve(): this;

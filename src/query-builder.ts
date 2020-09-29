@@ -75,8 +75,8 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return cloned;
   }
 
-    create(props: Omit<P, "_id">) {
-        const record = new this.Model(props as any);
+    create(props: Partial<P>) {
+        const record = new this.Model(props as P);
         record.hasObserve = this.hasObserver;
         return record.save();
     }

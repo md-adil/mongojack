@@ -6,13 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const joi_1 = __importDefault(require("joi"));
 const driver_1 = __importDefault(require("./driver"));
 const error_1 = require("./error");
-const dot_object_1 = __importDefault(require("dot-object"));
 const lodash_1 = __importDefault(require("lodash"));
 class Model {
     constructor(attributes, isNew = true) {
-        this.attributes = attributes;
         this.isNew = isNew;
         this.hasObserve = true;
+        this.attributes = attributes;
     }
     static connect(url, database, options) {
         const driver = new driver_1.default(url, database, options);
@@ -24,15 +23,14 @@ class Model {
         if (!schema) {
             return values;
         }
+        let options = {
+            presence: "required"
+        };
         if (isUpdate) {
-            const newSchema = {};
-            const keys = Object.keys(dot_object_1.default.dot(values));
-            keys.forEach(k => {
-                dot_object_1.default.str(k, dot_object_1.default.pick(k, schema), newSchema);
-            });
-            schema = newSchema;
+            options.presence = "optional";
+            options.noDefaults = true;
         }
-        const data = joi_1.default.compile(schema).validate(values);
+        const data = joi_1.default.compile(schema).validate(values, options);
         if (data.error) {
             throw new error_1.ValidationError(data.error.message);
         }
@@ -56,7 +54,7 @@ class Model {
     }
     async save() {
         if (!this.isNew) {
-            return this.update(this.attributes);
+            return this.update(lodash_1.default.omit(this.attributes, this.constructor.primaryKeys));
         }
         const attributes = this.constructor.validateSchema(this.attributes);
         Object.assign(this.attributes, attributes);
@@ -81,6 +79,7 @@ class Model {
         }, {});
     }
     async update(attributes) {
+        console.log("Saving", attributes);
         attributes = this.constructor.validateSchema(attributes, true);
         const observer = this.hasObserve && this.constructor.observer;
         Object.assign(this.attributes, attributes);

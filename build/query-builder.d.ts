@@ -19,7 +19,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     where(name: keyof P | FilterQuery<P>, value?: any): this;
     project(p: FindOneOptions<P>["projection"]): void;
     clone(): QueryBuilder<M, P>;
-    create(props: Omit<P, "_id">): Promise<M>;
+    create(props: Partial<P>): Promise<M>;
     createMany(props: Partial<P>[]): Promise<M[]>;
     update(items: Partial<P>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(): Promise<import("mongodb").DeleteWriteOpResultObject>;
