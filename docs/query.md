@@ -36,6 +36,12 @@ async function run() {
     for await (user of users) {
         console.log(user) // User (male)
     }
+
+    User.query.push({roles: "admin"}) // push to array
+    User.query.pull({roles: "admin"}) // pull
+    User.query.increment({ session: 1 }) // increment
+    User.query.multiply({do: 2}) // multiply
+    User.query.unset(['name']) // unset fields
 }
 run().catch(err => console.log(err));
 ```

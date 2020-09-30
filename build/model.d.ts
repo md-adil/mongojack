@@ -32,6 +32,7 @@ export default abstract class Model<P = Record<string, any>> {
     noObserve(): this;
     save(): Promise<this>;
     get keyQuery(): {};
+    unset(fields: string[]): Promise<this>;
     update(attributes: Partial<P>): Promise<this>;
     delete(): Promise<this>;
     toJSON(): any;

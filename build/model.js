@@ -78,8 +78,15 @@ class Model {
             return val;
         }, {});
     }
+    async unset(fields) {
+        const values = fields.reduce((r, k) => {
+            r[k] = true;
+            return r;
+        }, {});
+        await this.constructor.collection.updateOne(this.keyQuery, { $unset: values });
+        return this;
+    }
     async update(attributes) {
-        console.log("Saving", attributes);
         attributes = this.constructor.validateSchema(attributes, true);
         const observer = this.hasObserve && this.constructor.observer;
         Object.assign(this.attributes, attributes);

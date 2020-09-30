@@ -21,6 +21,11 @@ export default class QueryBuilder<M extends Model<P>, P> {
     clone(): QueryBuilder<M, P>;
     create(props: Partial<P>): Promise<M>;
     createMany(props: Partial<P>[]): Promise<M[]>;
+    increment(values: any): Promise<number>;
+    multiply(values: any): Promise<number>;
+    push(values: any): Promise<number>;
+    pull(values: any): Promise<number>;
+    unset(fields: string[]): Promise<number>;
     update(items: Partial<P>): Promise<import("mongodb").UpdateWriteOpResult>;
     delete(): Promise<import("mongodb").DeleteWriteOpResultObject>;
     modelify(data: AsyncGenerator<P> | Cursor<P>): Promise<M[]>;

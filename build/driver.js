@@ -13,7 +13,8 @@ class Driver {
         }
     }
     get database() {
-        return this.client?.db(this.dbName);
+        var _a;
+        return (_a = this.client) === null || _a === void 0 ? void 0 : _a.db(this.dbName);
     }
     collection(name) {
         if (!this.database) {

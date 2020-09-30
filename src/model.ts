@@ -3,7 +3,6 @@ import { Collection, MongoClientOptions, ObjectID } from "mongodb";
 import Driver from "./driver";
 import Observer from "./observer";
 import { ValidationError } from "./error";
-import dot from "dot-object";
 import _ from "lodash";
 
 export interface ModelConstructor<M extends Model<P>, P> {
@@ -112,8 +111,16 @@ export default abstract class Model<P = Record<string, any>> {
     }, {});
   }
 
+  async unset(fields: string[]) {
+    const values = fields.reduce<Record<string, any>>((r, k) => {
+      r[k] = true;
+      return r;
+    }, {})
+    await this.constructor.collection.updateOne(this.keyQuery, { $unset: values });
+    return this;
+  }
+
   async update(attributes: Partial<P>) {
-    console.log("Saving", attributes);
     attributes = this.constructor.validateSchema(attributes, true);
     const observer = this.hasObserve && this.constructor.observer;
     Object.assign(this.attributes, attributes);

@@ -20,3 +20,5 @@ class MyDriver extends Driver {
 
 Model.driver = new MyDriver();
 ```
+
+Next: [Define Model](model.md)

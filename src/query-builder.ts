@@ -98,20 +98,43 @@ export default class QueryBuilder<M extends Model<P>, P> {
       return rows;
     }
 
-    async increment() {
-
+    async increment(values: any) {
+      const updatedRows = await this.Model.collection.updateMany(this._query as any, {
+        $inc: values
+      });
+      return updatedRows.modifiedCount;
     }
 
-    async decrement() {
-
+    async multiply(values: any) {
+      const updatedRows = await this.Model.collection.updateMany(this._query as any, {
+        $mul: values
+      });
+      return updatedRows.modifiedCount;
     }
 
-    async push() {
-
+    async push(values: any) {
+      const updatedRows = await this.Model.collection.updateMany(this._query as any, {
+        $push: values
+      });
+      return updatedRows.modifiedCount;
     }
 
-    async pull() {
+    async pull(values: any) {
+      const updatedRows = await this.Model.collection.updateMany(this._query as any, {
+        $pull: values
+      });
+      return updatedRows.modifiedCount;
+    }
 
+    async unset(fields: string[]) {
+      const values = fields.reduce<Record<string, any>>((r, k) => {
+        r[k] = true;
+        return r;
+      }, {})
+      const updatedRows = await this.Model.collection.updateMany(this._query as any, {
+        $unset: values
+      });
+      return updatedRows.modifiedCount;
     }
 
     update(items: Partial<P>) {

@@ -87,6 +87,9 @@ const user = await User.query.first();
 user.attributes.name = "world";
 await user.save();
 
+await user.unset(['name']) // unset name field
+
+
 // or
 await user.update({name: "world"});
 ```
@@ -128,3 +131,5 @@ class User extends ... {
     }
 }
 ```
+
+Next: [Query your data](query.md)

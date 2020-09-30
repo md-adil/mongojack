@@ -88,6 +88,40 @@ class QueryBuilder {
         }
         return rows;
     }
+    async increment(values) {
+        const updatedRows = await this.Model.collection.updateMany(this._query, {
+            $inc: values
+        });
+        return updatedRows.modifiedCount;
+    }
+    async multiply(values) {
+        const updatedRows = await this.Model.collection.updateMany(this._query, {
+            $mul: values
+        });
+        return updatedRows.modifiedCount;
+    }
+    async push(values) {
+        const updatedRows = await this.Model.collection.updateMany(this._query, {
+            $push: values
+        });
+        return updatedRows.modifiedCount;
+    }
+    async pull(values) {
+        const updatedRows = await this.Model.collection.updateMany(this._query, {
+            $pull: values
+        });
+        return updatedRows.modifiedCount;
+    }
+    async unset(fields) {
+        const values = fields.reduce((r, k) => {
+            r[k] = true;
+            return r;
+        }, {});
+        const updatedRows = await this.Model.collection.updateMany(this._query, {
+            $unset: values
+        });
+        return updatedRows.modifiedCount;
+    }
     update(items) {
         return this.Model.collection.updateMany(this._query, {
             $set: this.Model.validateSchema(items, true)
