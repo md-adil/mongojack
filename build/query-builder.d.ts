@@ -9,7 +9,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
     protected hasObserver: boolean;
     protected hasSchema: boolean;
     constructor(Model: ModelConstructor<M, P>);
-    noObserve(): this;
+    noObserver(): this;
     noSchema(): this;
     get query(): Record<string, string | number>;
     get options(): FindOneOptions<P>;

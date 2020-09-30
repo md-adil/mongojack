@@ -78,7 +78,7 @@ class Model {
         }
         this.isNew = false;
         if (observer && observer.created) {
-            await observer.created(this);
+            observer.created(this);
         }
         return this;
     }

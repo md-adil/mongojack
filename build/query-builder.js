@@ -13,7 +13,7 @@ class QueryBuilder {
         this.hasObserver = true;
         this.hasSchema = true;
     }
-    noObserve() {
+    noObserver() {
         this.hasObserver = false;
         return this;
     }

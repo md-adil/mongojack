@@ -119,7 +119,7 @@ export default abstract class Model<P = Record<string, any>> {
         }
         this.isNew = false;
         if (observer && observer.created) {
-            await observer.created(this);
+            observer.created(this);
         }
         return this;
     }

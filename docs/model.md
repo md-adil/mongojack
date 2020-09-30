@@ -40,6 +40,13 @@ class User extends Model {
 // default all fields are required, you have to explicitly make field optional by calling optional property
 // we are using joi schema underneath, please check full list of validation
 // https://joi.dev/api
+
+async function run() {
+    const user = await User.query.create({name: "world"}); // will be validate against schema
+    // or
+    const user = await User.query.noSchema().create({name: "world"}); // will not be validate against schema
+}
+
 ```
 
 # Append field

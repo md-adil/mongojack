@@ -41,3 +41,11 @@ class User extends Model {
     }
 }
 
+async function run() {
+    const user = await User.query.create({name: "world"}); // creating and created will be called
+    // or
+    const user = await User.query.noObserver().create({name: "world"}); // creating and created will not be called
+}
+
+run().catch(err => console.log(err));
+

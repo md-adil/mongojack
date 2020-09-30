@@ -11,7 +11,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
   protected hasSchema = true;
   // eslint-disable-next-line no-shadow
   constructor(public Model: ModelConstructor<M, P>) {}
-  noObserve() {
+  noObserver() {
     this.hasObserver = false;
     return this;
   }
