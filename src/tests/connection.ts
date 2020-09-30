@@ -1,11 +1,3 @@
-import { Driver } from "..";
-
-export class Collection {
-    public queryCallback: any;
-    onQuery(cb: any) {
-        this.queryCallback = cb;
-    }
-    find(...args: any[]) {
-        return this.queryCallback(...args);
-    }
-}
+export default () => [
+    'mongodb://localhost', 'testdb', { useUnifiedTopology: true }
+] as const;

@@ -1,5 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var joi_1 = require("joi");
+exports.schema = joi_1.default;
 var model_1 = require("./model");
 exports.Model = model_1.default;
 var query_builder_1 = require("./query-builder");
@@ -13,5 +15,3 @@ exports.Pagination = pagination_1.default;
 var error_1 = require("./error");
 exports.Error = error_1.Error;
 exports.ValidationError = error_1.ValidationError;
-var joi_1 = require("joi");
-exports.schema = joi_1.default;

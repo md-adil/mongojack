@@ -37,6 +37,9 @@ class QueryBuilder {
         }
         return new this.Model(row, false);
     }
+    findById(id) {
+        return this.where({ _id: id }).first();
+    }
     take(n) {
         this._options.limit = n;
         return this;

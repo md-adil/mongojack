@@ -1,5 +1,5 @@
 import Model from "./model";
-export default abstract class Observer<T extends Model> {
+export default abstract class Observer<T extends Model = Model> {
     creating(record: T): void | Promise<void>;
     created(record: T): void | Promise<void>;
     updating(record: T, attributes: any): void | Promise<void>;

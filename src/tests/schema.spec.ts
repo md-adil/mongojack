@@ -1,4 +1,5 @@
-import { Model, schema } from "..";
+import { Model } from "..";
+import field from "joi";
 
 describe("Schema", () => {
     interface IUser {
@@ -11,18 +12,18 @@ describe("Schema", () => {
     class User extends Model<IUser> {
         static schema = {
             name: {
-                first: schema.string().required(),
-                last: schema.string().required()
+                first: field.string().required(),
+                last: field.string()
             }
         }
     }
-    describe("should validate", () => {
+    describe("validateSchema", () => {
         it("it will be valid", () => {
-            User.validateSchema({name: {first: "Adil", last: "Hello"}})
+            User.validateSchema({name: { first: "Adil", last: "Hello"}})
         })
         it("it will be invalid", () => {
             User.validateSchema(
-                {name: { first: "Adil" }}, true
+                { name: { first: "Adil" }}, true
             )
         })
     })

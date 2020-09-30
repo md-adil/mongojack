@@ -1,4 +1,4 @@
-import { Cursor, FilterQuery, FindOneOptions } from "mongodb";
+import { Cursor, FilterQuery, FindOneOptions, ObjectID } from "mongodb";
 import Model, { ModelConstructor } from "./model";
 import Pagination from "./pagination";
 
@@ -39,7 +39,9 @@ export default class QueryBuilder<M extends Model<P>, P> {
     }
     return new this.Model(row, false);
   }
-
+  findById(id: string | ObjectID) {
+    return this.where({ _id: id } as any).first();
+  }
   take(n: FindOneOptions<P>["limit"]) {
     this._options.limit = n;
     return this;
@@ -75,15 +77,15 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return cloned;
   }
 
-    create(props: Partial<P>) {
-        const record = new this.Model(props as P);
+    create(props: P) {
+        const record = new this.Model(props);
         record.hasObserve = this.hasObserver;
         return record.save();
     }
 
-    async createMany(props: Partial<P>[]) {
+    async createMany(props: P[]) {
       const observer = this.hasObserver && this.Model.observer;
-      const rows = props.map(prop => new this.Model(prop as P));
+      const rows = props.map(prop => new this.Model(prop));
       if (observer && observer.creating) {
         await Promise.all(rows.map(row => observer.creating(row)));
       }
@@ -137,7 +139,7 @@ export default class QueryBuilder<M extends Model<P>, P> {
       return updatedRows.modifiedCount;
     }
 
-    update(items: Partial<P>) {
+    update(items: P) {
         return this.Model.collection.updateMany(this._query, {
           $set: this.Model.validateSchema(items, true)
         });

@@ -9,9 +9,9 @@ const error_1 = require("./error");
 const lodash_1 = __importDefault(require("lodash"));
 class Model {
     constructor(attributes, isNew = true) {
+        this.attributes = attributes;
         this.isNew = isNew;
         this.hasObserve = true;
-        this.attributes = attributes;
     }
     static connect(url, database, options) {
         const driver = new driver_1.default(url, database, options);
@@ -24,7 +24,7 @@ class Model {
             return values;
         }
         let options = {
-            presence: "required"
+            presence: "required",
         };
         if (isUpdate) {
             options.presence = "optional";
@@ -60,13 +60,14 @@ class Model {
         Object.assign(this.attributes, attributes);
         const observer = this.hasObserve && this.constructor.observer;
         if (observer && observer.creating) {
-            console.log('trying to create');
             await observer.creating(this);
         }
         const record = await this.constructor.collection.insertOne(this.attributes);
         if (record.insertedId) {
-            this.attributes[this.constructor.primaryKeys[0]] = record.insertedId;
+            this.attributes[this.constructor.primaryKeys[0]] =
+                record.insertedId;
         }
+        this.isNew = false;
         if (observer && observer.created) {
             await observer.created(this);
         }
@@ -83,8 +84,10 @@ class Model {
             r[k] = true;
             return r;
         }, {});
-        await this.constructor.collection.updateOne(this.keyQuery, { $unset: values });
-        fields.forEach(f => {
+        await this.constructor.collection.updateOne(this.keyQuery, {
+            $unset: values,
+        });
+        fields.forEach((f) => {
             delete this.attributes[f];
         });
         return this;
@@ -96,7 +99,9 @@ class Model {
         if (observer && observer.updating) {
             await observer.updating(this, attributes);
         }
-        await this.constructor.collection.updateOne(this.keyQuery, { $set: attributes });
+        await this.constructor.collection.updateOne(this.keyQuery, {
+            $set: attributes,
+        });
         if (observer && observer.updated) {
             observer.updated(this, attributes);
         }

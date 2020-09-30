@@ -7,15 +7,18 @@ export interface ModelConstructor<M extends Model<P>, P> {
     collection: Collection;
     driver: Driver;
     collectionName?: string;
-    observer?: Observer<M>;
+    observer?: Observer;
+    hidden: string[];
+    append: string[];
     validateSchema(attributes: any, isUpdate?: boolean): any;
 }
 export default abstract class Model<P = Record<string, any>> {
-    readonly isNew: boolean;
-    static collectionName: string;
+    readonly attributes: Partial<P>;
+    isNew: boolean;
     static driver: Driver;
+    static collectionName: string;
     static primaryKeys: string[];
-    static observer?: Observer<any>;
+    static observer?: Observer;
     static schema?: Record<string, any> | Joi.AnySchema;
     static hidden: string[];
     static append: string[];
@@ -25,7 +28,6 @@ export default abstract class Model<P = Record<string, any>> {
     static get collection(): Collection<any>;
     static aggregate(): import("mongodb").AggregationCursor<any>;
     hasObserve: boolean;
-    readonly attributes: P;
     constructor(attributes: Partial<P>, isNew?: boolean);
     get id(): string;
     get _id(): ObjectID;
@@ -36,6 +38,6 @@ export default abstract class Model<P = Record<string, any>> {
     update(attributes: Partial<P>): Promise<this>;
     delete(): Promise<this>;
     toJSON(): any;
-    toObject(): P;
+    toObject(): Partial<P>;
 }
 //# sourceMappingURL=model.d.ts.map
