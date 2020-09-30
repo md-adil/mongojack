@@ -11,9 +11,14 @@ class QueryBuilder {
         this._query = {};
         this._options = {};
         this.hasObserver = true;
+        this.hasSchema = true;
     }
     noObserve() {
         this.hasObserver = false;
+        return this;
+    }
+    noSchema() {
+        this.hasSchema = false;
         return this;
     }
     get query() {
@@ -72,19 +77,37 @@ class QueryBuilder {
     }
     create(props) {
         const record = new this.Model(props);
-        record.hasObserve = this.hasObserver;
+        if (!this.hasObserver) {
+            record.noObserver();
+        }
+        if (!this.hasSchema) {
+            record.noSchema();
+        }
         return record.save();
     }
     async createMany(props) {
         const observer = this.hasObserver && this.Model.observer;
-        const rows = props.map(prop => new this.Model(prop));
-        if (observer && observer.creating) {
-            await Promise.all(rows.map(row => observer.creating(row)));
+        const rows = [];
+        const promises = [];
+        const data = [];
+        for (const prop of props) {
+            const row = new this.Model(prop, false);
+            rows.push(row);
+            if (observer && observer.creating) {
+                promises.push(observer.creating(row));
+            }
+            if (this.hasSchema) {
+                data.push(this.Model.validateSchema(prop));
+            }
+            else {
+                data.push(prop);
+            }
         }
-        const inserted = await this.Model.collection.insertMany(props.map(prop => this.Model.validateSchema(prop)));
+        await Promise.all(promises);
+        const inserted = await this.Model.collection.insertMany(data);
         for (let i = 0; i > rows.length; i++) {
             const row = rows[i];
-            row.attributes._id = inserted[i];
+            row.attributes[this.Model.primaryKeys[0]] = inserted[i];
             if (observer && observer.created) {
                 observer.created(row);
             }
@@ -125,9 +148,12 @@ class QueryBuilder {
         });
         return updatedRows.modifiedCount;
     }
-    update(items) {
+    update(values) {
+        if (this.hasSchema) {
+            values = this.Model.validateSchema(values, true);
+        }
         return this.Model.collection.updateMany(this._query, {
-            $set: this.Model.validateSchema(items, true)
+            $set: values
         });
     }
     delete() {

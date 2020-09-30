@@ -4,6 +4,7 @@ import Driver from "./driver";
 import Observer from "./observer";
 export interface ModelConstructor<M extends Model<P>, P> {
     new (attributes: P, isNew?: boolean): M;
+    primaryKeys: string[];
     collection: Collection;
     driver: Driver;
     collectionName?: string;
@@ -13,7 +14,7 @@ export interface ModelConstructor<M extends Model<P>, P> {
     validateSchema(attributes: any, isUpdate?: boolean): any;
 }
 export default abstract class Model<P = Record<string, any>> {
-    readonly attributes: Partial<P>;
+    readonly attributes: P;
     isNew: boolean;
     static driver: Driver;
     static collectionName: string;
@@ -27,17 +28,19 @@ export default abstract class Model<P = Record<string, any>> {
     static validateSchema(values: any, isUpdate?: boolean): any;
     static get collection(): Collection<any>;
     static aggregate(): import("mongodb").AggregationCursor<any>;
-    hasObserve: boolean;
-    constructor(attributes: Partial<P>, isNew?: boolean);
+    protected hasObserver: boolean;
+    protected hasSchema: boolean;
+    constructor(attributes: P, isNew?: boolean);
     get id(): string;
     get _id(): ObjectID;
-    noObserve(): this;
+    noObserver(): this;
+    noSchema(): this;
     save(): Promise<this>;
     get keyQuery(): {};
     unset(fields: string[]): Promise<this>;
     update(attributes: Partial<P>): Promise<this>;
     delete(): Promise<this>;
     toJSON(): any;
-    toObject(): Partial<P>;
+    toObject(): P;
 }
 //# sourceMappingURL=model.d.ts.map

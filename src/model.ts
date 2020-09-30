@@ -7,6 +7,7 @@ import _ from "lodash";
 
 export interface ModelConstructor<M extends Model<P>, P> {
     new (attributes: P, isNew?: boolean): M;
+    primaryKeys: string[];
     collection: Collection;
     driver: Driver;
     collectionName?: string;
@@ -57,6 +58,9 @@ export default abstract class Model<P = Record<string, any>> {
     }
 
     static get collection() {
+        if (!this.driver || !this.driver.collection) {
+            throw new Error("Database not connected accessing collection: " + (this.collectionName || this.name));
+        }
         return this.driver.collection(this.collectionName || this.name);
     }
 
@@ -64,9 +68,9 @@ export default abstract class Model<P = Record<string, any>> {
         return this.collection.aggregate();
     }
 
-    hasObserve = true;
-
-    constructor(public readonly attributes: Partial<P>, public isNew = true) {}
+    protected hasObserver = true;
+    protected hasSchema = true;
+    constructor(public readonly attributes: P, public isNew = true) {}
 
     get id() {
         return String(this._id);
@@ -76,8 +80,13 @@ export default abstract class Model<P = Record<string, any>> {
         return (this.attributes as any)._id as ObjectID;
     }
 
-    noObserve() {
-        this.hasObserve = false;
+    noObserver() {
+        this.hasObserver = false;
+        return this;
+    }
+
+    public noSchema() {
+        this.hasSchema = false;
         return this;
     }
 
@@ -90,9 +99,13 @@ export default abstract class Model<P = Record<string, any>> {
                 ) as any
             );
         }
-        const attributes = this.constructor.validateSchema(this.attributes);
-        Object.assign(this.attributes, attributes);
-        const observer = this.hasObserve && this.constructor.observer;
+        if (this.hasSchema) {
+            Object.assign(
+                this.attributes,
+                this.constructor.validateSchema(this.attributes)
+            );
+        }
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.creating) {
             await observer.creating(this);
         }
@@ -133,22 +146,24 @@ export default abstract class Model<P = Record<string, any>> {
     }
 
     async update(attributes: Partial<P>) {
-        attributes = this.constructor.validateSchema(attributes, true);
-        const observer = this.hasObserve && this.constructor.observer;
-        Object.assign(this.attributes, attributes);
+        if (this.hasSchema) {
+            this.constructor.validateSchema(attributes, true);
+        }
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.updating) {
             await observer.updating(this, attributes);
         }
         await this.constructor.collection.updateOne(this.keyQuery, {
             $set: attributes,
         });
+        Object.assign(this.attributes, attributes);
         if (observer && observer.updated) {
             observer.updated(this, attributes);
         }
         return this;
     }
     async delete() {
-        const observer = this.hasObserve && this.constructor.observer;
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.deleting) {
             await observer.deleting(this);
         }

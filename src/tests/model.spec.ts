@@ -1,13 +1,12 @@
 import { assert } from "chai";
-import { any } from "joi";
 import { ObjectID, ObjectId } from "mongodb";
-import { defaultMaxListeners } from "stream";
 import { Model, Observer, QueryBuilder } from "..";
 import connection from "./connection";
 
 describe("model", () => {
     let driver: any;
     before((done) => {
+        console.log("Opening conenction");
         Model.connect(...connection()).then((d) => {
             driver = d;
             done();
@@ -15,6 +14,7 @@ describe("model", () => {
     });
 
     after((done) => {
+        console.log("closing conenction")
         driver.close().then(() => done());
     });
     describe("creating, updating, deleting and query", () => {
@@ -53,6 +53,11 @@ describe("model", () => {
                 (await User.query.findById(createdId))!.name,
                 "Hello"
             );
+            await user!.update({name: "World"});
+            assert.equal(
+                (await User.query.findById(createdId))!.name,
+                "World"
+            );
         });
         it("Deleting a record", async () => {
             const user = await User.query.findById(createdId);
@@ -62,7 +67,7 @@ describe("model", () => {
         it("creating by instance", async () => {
             const user = new User({
                 name: "Adil",
-            });
+            } as any);
             assert.isTrue(user.isNew);
             await user.save();
             assert.isFalse(user.isNew);
@@ -72,6 +77,22 @@ describe("model", () => {
             );
             await user.delete();
         });
+
+        it("create many records", async () => {
+            const allusers = [{
+                name: "Apple"
+            }, {
+                name: "mango"
+            }];
+            const users = await User.query.createMany(allusers);
+            assert.isFalse(users[0].isNew, "User shouldnt be new")
+            assert.isTrue(users.length === allusers.length, "Users length should be as input");
+            assert.deepEqual(users[0].name, "Apple");
+            assert.deepEqual(users[1].name, "mango");
+            for (const user of users) {
+                await user.delete();
+            }
+        })
     });
 
     describe("getters", () => {

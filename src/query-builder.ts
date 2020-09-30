@@ -7,14 +7,18 @@ export default class QueryBuilder<M extends Model<P>, P> {
   protected _options: FindOneOptions<P> = {};
 
   static pageSize = 25;
-  hasObserver = true;
+  protected hasObserver = true;
+  protected hasSchema = true;
   // eslint-disable-next-line no-shadow
   constructor(public Model: ModelConstructor<M, P>) {}
   noObserve() {
     this.hasObserver = false;
     return this;
   }
-
+  noSchema() {
+    this.hasSchema = false;
+    return this;
+  }
   get query() {
     return this._query;
   }
@@ -77,22 +81,39 @@ export default class QueryBuilder<M extends Model<P>, P> {
     return cloned;
   }
 
-    create(props: P) {
-        const record = new this.Model(props);
-        record.hasObserve = this.hasObserver;
+    create(props: Partial<P>) {
+        const record = new this.Model(props as P);
+        if (!this.hasObserver) {
+          record.noObserver();
+        }
+        if (!this.hasSchema) {
+          record.noSchema();
+        }
         return record.save();
     }
 
-    async createMany(props: P[]) {
+    async createMany(props: Partial<P>[]) {
       const observer = this.hasObserver && this.Model.observer;
-      const rows = props.map(prop => new this.Model(prop));
-      if (observer && observer.creating) {
-        await Promise.all(rows.map(row => observer.creating(row)));
+      const rows: M[] = [];
+      const promises: (Promise<void> | void)[] = [];
+      const data: P[] = [];
+      for (const prop of props) {
+          const row = new this.Model(prop as P, false);
+          rows.push(row);
+          if (observer && observer.creating) {
+              promises.push(observer.creating(row));
+          }
+          if (this.hasSchema) {
+            data.push(this.Model.validateSchema(prop) as P);
+          } else {
+            data.push(prop as P);
+          }
       }
-      const inserted = await this.Model.collection.insertMany(props.map(prop => this.Model.validateSchema(prop)));
+      await Promise.all(promises);
+      const inserted = await this.Model.collection.insertMany(data);
       for (let i = 0; i > rows.length; i++) {
         const row = rows[i];
-        (row.attributes as any)._id = (inserted as any)[i];
+        (row.attributes as any)[this.Model.primaryKeys[0]] = (inserted as any)[i];
         if (observer && observer.created) {
           observer.created(row);
         }
@@ -100,14 +121,14 @@ export default class QueryBuilder<M extends Model<P>, P> {
       return rows;
     }
 
-    async increment(values: any) {
+    async increment(values: Partial<P>) {
       const updatedRows = await this.Model.collection.updateMany(this._query as any, {
         $inc: values
       });
       return updatedRows.modifiedCount;
     }
 
-    async multiply(values: any) {
+    async multiply(values: Partial<P>) {
       const updatedRows = await this.Model.collection.updateMany(this._query as any, {
         $mul: values
       });
@@ -139,9 +160,12 @@ export default class QueryBuilder<M extends Model<P>, P> {
       return updatedRows.modifiedCount;
     }
 
-    update(items: P) {
+    update(values: Partial<P>) {
+      if (this.hasSchema) {
+        values = this.Model.validateSchema(values, true);
+      }
         return this.Model.collection.updateMany(this._query, {
-          $set: this.Model.validateSchema(items, true)
+          $set: values
         });
     }
 

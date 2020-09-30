@@ -11,7 +11,8 @@ class Model {
     constructor(attributes, isNew = true) {
         this.attributes = attributes;
         this.isNew = isNew;
-        this.hasObserve = true;
+        this.hasObserver = true;
+        this.hasSchema = true;
     }
     static connect(url, database, options) {
         const driver = new driver_1.default(url, database, options);
@@ -37,6 +38,9 @@ class Model {
         return data.value;
     }
     static get collection() {
+        if (!this.driver || !this.driver.collection) {
+            throw new Error("Database not connected accessing collection: " + (this.collectionName || this.name));
+        }
         return this.driver.collection(this.collectionName || this.name);
     }
     static aggregate() {
@@ -48,17 +52,22 @@ class Model {
     get _id() {
         return this.attributes._id;
     }
-    noObserve() {
-        this.hasObserve = false;
+    noObserver() {
+        this.hasObserver = false;
+        return this;
+    }
+    noSchema() {
+        this.hasSchema = false;
         return this;
     }
     async save() {
         if (!this.isNew) {
             return this.update(lodash_1.default.omit(this.attributes, this.constructor.primaryKeys));
         }
-        const attributes = this.constructor.validateSchema(this.attributes);
-        Object.assign(this.attributes, attributes);
-        const observer = this.hasObserve && this.constructor.observer;
+        if (this.hasSchema) {
+            Object.assign(this.attributes, this.constructor.validateSchema(this.attributes));
+        }
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.creating) {
             await observer.creating(this);
         }
@@ -93,22 +102,24 @@ class Model {
         return this;
     }
     async update(attributes) {
-        attributes = this.constructor.validateSchema(attributes, true);
-        const observer = this.hasObserve && this.constructor.observer;
-        Object.assign(this.attributes, attributes);
+        if (this.hasSchema) {
+            this.constructor.validateSchema(attributes, true);
+        }
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.updating) {
             await observer.updating(this, attributes);
         }
         await this.constructor.collection.updateOne(this.keyQuery, {
             $set: attributes,
         });
+        Object.assign(this.attributes, attributes);
         if (observer && observer.updated) {
             observer.updated(this, attributes);
         }
         return this;
     }
     async delete() {
-        const observer = this.hasObserve && this.constructor.observer;
+        const observer = this.hasObserver && this.constructor.observer;
         if (observer && observer.deleting) {
             await observer.deleting(this);
         }
