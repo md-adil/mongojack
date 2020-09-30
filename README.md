@@ -1,4 +1,5 @@
 # Quick start
+> Still being developed and highly unstable, please don't use it in production until major version release.
 
 ```js
 import { Model, QueryBuilder } from "mongojack";
