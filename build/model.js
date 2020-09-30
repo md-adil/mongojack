@@ -84,6 +84,9 @@ class Model {
             return r;
         }, {});
         await this.constructor.collection.updateOne(this.keyQuery, { $unset: values });
+        fields.forEach(f => {
+            delete this.attributes[f];
+        });
         return this;
     }
     async update(attributes) {

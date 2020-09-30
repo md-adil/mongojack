@@ -117,6 +117,9 @@ export default abstract class Model<P = Record<string, any>> {
       return r;
     }, {})
     await this.constructor.collection.updateOne(this.keyQuery, { $unset: values });
+    fields.forEach(f => {
+      delete (this.attributes as any)[f];
+    });
     return this;
   }
 
